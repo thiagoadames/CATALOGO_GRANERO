@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Nueva Empresa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .form-container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px;
+            padding: 35px 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 24px; color: #1e293b; font-weight: 700; }
+        .header p { font-size: 14px; color: #64748b; margin-top: 5px; }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            margin: 20px 0 10px 0;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 5px;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+        .form-control {
+            width: 100%; padding: 12px 14px; font-size: 15px;
+            border: 2px solid #e2e8f0; border-radius: 12px;
+            background-color: #f8fafc; color: #1e293b; transition: all 0.3s;
+        }
+        .form-control:focus { outline: none; border-color: #3b82f6; background-color: #fff; }
+        
+        .btn-submit {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 600;
+            cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .btn-submit:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <div class="header">
+            <h1>🏢 Registrar Empresa</h1>
+            <p>Da de alta un nuevo negocio en la plataforma</p>
+        </div>
+
+        <form action="/registrar-tienda" method="POST">
+            <div class="section-title">Datos del Negocio</div>
+            
+            <div class="form-group">
+                <label for="nombre_tienda">Nombre de la Tienda / Empresa</label>
+                <input type="text" id="nombre_tienda" name="nombre_tienda" class="form-control" placeholder="Ej: Supermercado El Dorado" required>
+            </div>
+
+            <div class="form-group">
+                <label for="telefono">Teléfono Celular (WhatsApp)</label>
+                <input type="number" id="telefono" name="telefono" class="form-control" placeholder="Ej: 3165393997" required>
+            </div>
+
+            <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" name="direccion" class="form-control" placeholder="Ej: Calle 10 # 4-20">
+            </div>
+
+            <div class="form-group">
+                <label for="ciudad">Ciudad</label>
+                <input type="text" id="ciudad" name="ciudad" class="form-control" placeholder="Ej: Palmira" value="Palmira">
+            </div>
+
+            <div class="section-title">Acceso del Dueño</div>
+
+            <div class="form-group">
+                <label for="usuario">Usuario Administrador</label>
+                <input type="text" id="usuario" name="usuario" class="form-control" placeholder="Ej: eldorado_admin" required autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="contrasena">Contraseña de Ingreso</label>
+                <input type="password" id="contrasena" name="contrasena" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-submit">🚀 Crear Empresa y Administrador</button>
+        </form>
+    </div>
+
+</body>
+</html>

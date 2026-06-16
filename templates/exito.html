@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Producto Guardado!</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100">
+        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-circle-check text-green-500 text-4xl"></i>
+        </div>
+
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">¡Registro Exitoso!</h1>
+        <p class="text-gray-500 mb-6">
+            El producto <span class="font-semibold text-gray-700">"{{ nombre_producto }}"</span> ha sido guardado físicamente en la base de datos.
+        </p>
+
+        <div class="space-y-3">
+            <a href="/tienda/{{ id_tienda }}/agregar" 
+               class="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition duration-200 shadow-md">
+                <i class="fa-solid fa-plus"></i>
+                Añadir otro producto
+            </a>
+
+            <a href="/tienda/{{ id_tienda }}/catalogo?admin=true" 
+               class="flex items-center justify-center gap-2 w-full bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-xl transition duration-200 shadow-md">
+                <i class="fa-solid fa-store"></i>
+                Ver Catálogo (Gestionar)
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✏️ Editar Producto</title>
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --dark: #0f172a;
+            --slate: #64748b;
+            --bg: #f8fafc;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0; padding: 0;
+            color: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+            width: 100%;
+            max-width: 550px;
+            border: 1px solid #e2e8f0;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            outline: none;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* Vista previa de la imagen actual */
+        .preview-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 5px;
+        }
+        .img-preview {
+            width: 65px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+        }
+        .preview-text {
+            font-size: 12.5px;
+            color: var(--slate);
+            line-height: 1.4;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .btn {
+            flex: 1;
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-submit:hover {
+            background: var(--primary-hover);
+        }
+        .btn-cancel {
+            background: #cbd5e1;
+            color: #475569;
+        }
+        .btn-cancel:hover {
+            background: #94a3b8;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>✏️ Editar Producto</h2>
+    
+    <form action="/tienda/{{ id_tienda }}/editar/{{ producto[0] }}" method="POST" enctype="multipart/form-data">
+        
+        <div class="form-group">
+            <label for="nombre">Nombre del Producto:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ producto[1] }}" required placeholder="Ej: Arroz Diana 1kg">
+        </div>
+
+        <div class="form-group">
+            <label for="precio">Precio (COP):</label>
+            <input type="number" id="precio" name="precio" value="{{ producto[2] }}" required placeholder="Ej: 4500">
+        </div>
+
+        <div class="form-group">
+            <label for="categoria">Categoría / Subcarpeta:</label>
+            <select id="categoria" name="categoria" required>
+                <option value="abarrotes" {% if producto[3] == 'abarrotes' %}selected{% endif %}>🌾 Abarrotes</option>
+                <option value="lacteos" {% if producto[3] == 'lacteos' %}selected{% endif %}>🥛 Lácteos</option>
+                <option value="aseo" {% if producto[3] == 'aseo' %}selected{% endif %}>🧼 Aseo</option>
+                <option value="dulceria" {% if producto[3] == 'dulceria' %}selected{% endif %}>🍬 Dulcería</option>
+                <option value="bebidas" {% if producto[3] == 'bebidas' %}selected{% endif %}>🍾 Bebidas / Licores</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="descripcion">Descripción del Producto:</label>
+            <textarea id="descripcion" name="descripcion" placeholder="Notas adicionales o detalles del empaque...">{{ producto[4] if producto[4] else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="imagen">Cambiar Foto (Opcional):</label>
+            <input type="file" id="imagen" name="imagen" accept="image/*">
+            
+            <div class="preview-container">
+                {% if producto[5] and producto[5].strip() != '' %}
+                    <img src="{{ producto[5] }}" class="img-preview" alt="Foto actual">
+                {% else %}
+                    <div class="img-preview" style="display:flex; align-items:center; justify-content:center; color:var(--slate); font-size:20px;">📦</div>
+                {% endif %}
+                <div class="preview-text">
+                    <strong>Imagen actual activa.</strong><br>
+                    Si no seleccionas un archivo nuevo, se mantendrá esta misma foto.
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <a href="/tienda/{{ id_tienda }}/admin" class="btn btn-cancel">Cancelar</a>
+            <button type="submit" class="btn btn-submit">Guardar Cambios</button>
+        </div>
+
+    </form>
+</div>
+
+</body>
+</html>
