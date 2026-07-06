@@ -30,7 +30,16 @@
             position: sticky;
             top: 0; z-index: 100;
         }
-        .navbar h1 { font-size: 19px; margin: 0; font-weight: 800; color: var(--dark); }
+        .navbar h1 { font-size: 19px; margin: 0; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 10px; }
+        
+        /* ESTILO PARA EL LOGO CIRCULAR */
+        .logo-tienda {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #f1f5f9;
+        }
         
         .cart-status { background: #e0f2fe; color: #0369a1; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; }
         
@@ -240,7 +249,10 @@
 <body>
 
 <div class="navbar">
-    <h1>🏪 {{ nombre_tienda }}</h1>
+    <h1>
+        <img src="{{ url_logo }}" alt="Logo" class="logo-tienda">
+        {{ nombre_tienda }}
+    </h1>
     <div class="cart-status" id="cart-badge">🛒 Carrito: 0</div>
 </div>
 
