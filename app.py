@@ -63,8 +63,8 @@ def login():
                 # Mandamos directo al panel de administración de SU propia tienda
                 return redirect(url_for('panel_administrador', id_tienda=id_tienda_usuario))
             else:
-                # MODIFICACIÓN SOLICITADA: Mensaje con enlace para recuperar
-                mensaje_error = 'Usuario o contraseña incorrectos. <a href="/recuperar-cuenta">¿Olvidaste tus datos? Haz clic aquí</a>'
+                # MODIFICACIÓN: Mensaje con enlace para recuperar
+                mensaje_error = 'Usuario o contraseña incorrectos. <a href="/recuperar-cuenta">¿Olvidaste tus datos?</a>'
                 return render_template('login.html', error=mensaje_error)
                 
         except mysql.connector.Error as err:
@@ -72,6 +72,52 @@ def login():
             
     # Si entra por GET, mostramos el formulario limpio sin errores
     return render_template('login.html', error=None)
+
+
+# =========================================================================
+# RUTA PARA RECUPERACIÓN DE CUENTA (INTEGRACIÓN WHATSAPP)
+# =========================================================================
+@app.route('/recuperar-cuenta', methods=['GET', 'POST'])
+def recuperar_cuenta():
+    if request.method == 'POST':
+        email_ingresado = request.form['email'].strip()
+        
+        try:
+            conexion = obtener_conexion()
+            cursor = conexion.cursor(dictionary=True)
+            
+            # Buscamos la tienda y las credenciales del usuario usando el email
+            sql = """
+                SELECT t.nombre_tienda, t.telefono_whatsapp, u.usuario, u.contrasena 
+                FROM tiendas t
+                JOIN usuarios u ON t.id_tienda = u.id_tienda
+                WHERE t.email_recuperacion = %s
+            """
+            cursor.execute(sql, (email_ingresado,))
+            resultado = cursor.fetchone()
+            
+            cursor.close()
+            conexion.close()
+            
+            if resultado:
+                # Armamos el mensaje para WhatsApp
+                mensaje = f"Hola, tus credenciales para {resultado['nombre_tienda']} son: Usuario: {resultado['usuario']}, Contraseña: {resultado['contrasena']}"
+                link_whatsapp = f"https://wa.me/{resultado['telefono_whatsapp']}?text={mensaje}"
+                
+                return f"""
+                <h1>¡Éxito!</h1>
+                <p>Encontramos tu cuenta.</p>
+                <a href='{link_whatsapp}' target='_blank' style='padding: 15px; background: #25D366; color: white; text-decoration: none; border-radius: 5px;'>
+                    Enviar credenciales a mi WhatsApp
+                </a>
+                <br><br><a href='/login'>Volver al login</a>
+                """
+            else:
+                return "<h1>Error</h1><p>No encontramos ninguna empresa registrada con ese correo.</p><a href='/recuperar-cuenta'>Intentar de nuevo</a>"
+        except mysql.connector.Error as err:
+            return f"<h1>Error de base de datos: {err}</h1>"
+            
+    return render_template('recuperar_cuenta.html')
 
 
 # =========================================================================
@@ -385,6 +431,34 @@ def ver_catalogo(id_tienda):
                                
     except mysql.connector.Error as err:
         return f"<h1>Error de base de datos en Catálogo: {err}</h1>"
+
+# =========================================================================
+# NUEVA RUTA: CAMBIAR CONTRASEÑA
+# =========================================================================
+@app.route('/tienda/<int:id_tienda>/cambiar-clave', methods=['GET', 'POST'])
+def cambiar_clave(id_tienda):
+    if not session.get('admin_logeado'):
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        nueva_clave = request.form['nueva_clave']
+        
+        try:
+            conexion = obtener_conexion()
+            cursor = conexion.cursor()
+            
+            sql = "UPDATE usuarios SET contrasena = %s WHERE id_tienda = %s"
+            cursor.execute(sql, (nueva_clave, id_tienda))
+            conexion.commit()
+            
+            cursor.close()
+            conexion.close()
+            
+            return "<h1>Contraseña actualizada con éxito</h1><a href='/'>Volver al panel</a>"
+        except mysql.connector.Error as err:
+            return f"<h1>Error al actualizar la contraseña: {err}</h1>"
+        
+    return render_template('cambiar_clave.html', id_tienda=id_tienda)
 
 
 if __name__ == '__main__':

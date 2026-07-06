@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Acceso</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 { color: #0056b3; margin-bottom: 10px; }
+        p { color: #555; margin-bottom: 25px; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0 20px 0;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: #0056b3; outline: none; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        button:hover { background-color: #004494; transform: translateY(-2px); }
+        .footer-link { margin-top: 20px; display: block; color: #888; text-decoration: none; font-size: 13px; }
+        .footer-link:hover { color: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Recuperar acceso</h2>
+    <p>Ingresa el correo registrado para enviarte tus datos vía WhatsApp.</p>
+    
+    <form action="/recuperar-cuenta" method="POST">
+        <input type="email" name="email" placeholder="ejemplo@correo.com" required>
+        <button type="submit">Buscar mi cuenta</button>
+    </form>
+    
+    <a href="/login" class="footer-link">← Volver al inicio de sesión</a>
+</div>
+
+</body>
+</html>
