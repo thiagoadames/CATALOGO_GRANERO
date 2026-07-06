@@ -27,6 +27,7 @@
         .btn-view { background: white; color: #1e3a8a; }
         .btn-share { background: #25D366; color: white; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2); }
         .btn-logout { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); }
+        .btn-password { background: #f59e0b; color: white; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         
@@ -77,9 +78,8 @@
         
         <div class="top-buttons">
             <a href="{{ url_for('ver_catalogo', id_tienda=id_tienda) }}" class="btn-top btn-view">👁️ Ver Catálogo</a>
-            
             <button onclick="copiarLinkCatálogo()" class="btn-top btn-share">🔗 Compartir Catálogo</button>
-            
+            <a href="{{ url_for('cambiar_clave', id_tienda=id_tienda) }}" class="btn-top btn-password">🔑 Cambiar Clave</a>
             <a href="/logout" class="btn-top btn-logout">🚪 Salir</a>
         </div>
     </div>
@@ -114,10 +114,8 @@
 
     <script>
         function copiarLinkCatálogo() {
-            // Construye de forma automática la ruta pública real (sea ngrok o localhost)
             const enlaceReal = window.location.origin + "/tienda/{{ id_tienda }}/catalogo";
             
-            // Copia el texto al portapapeles del dispositivo móvil o PC
             navigator.clipboard.writeText(enlaceReal).then(() => {
                 alert("¡Link del catálogo copiado! Ya puedes ir a WhatsApp y pegarlo para tus clientes.");
             }).catch(err => {
