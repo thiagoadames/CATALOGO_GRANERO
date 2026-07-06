@@ -89,6 +89,16 @@ def registrar_tienda():
         usuario = request.form['usuario'].strip()
         contrasena = request.form['contrasena'].strip()
         
+        # Gestión del logo
+        url_logo_db = '/static/imagenes/default_logo.png'
+        if 'logo' in request.files:
+            archivo_logo = request.files['logo']
+            if archivo_logo.filename != '':
+                nombre_archivo_seguro = secure_filename(archivo_logo.filename)
+                ruta_guardado = os.path.join(app.config['UPLOAD_FOLDER'], nombre_archivo_seguro)
+                archivo_logo.save(ruta_guardado)
+                url_logo_db = f"/static/imagenes/{nombre_archivo_seguro}"
+        
         # GENERACIÓN DEL SLUG AUTOMÁTICO:
         slug = nombre_tienda.lower()
         slug = re.sub(r'[^a-z0-9\s-]', '', slug)
@@ -104,11 +114,10 @@ def registrar_tienda():
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # 1. Insertamos la nueva empresa con todas las columnas validadas de HeidiSQL
-            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp) 
-                            VALUES (%s, %s, %s, %s, %s, %s)"""
-            # CORRECCIÓN: Se agrega 'whatsapp_final' como 6to valor para coincidir con el SQL
-            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final)
+            # 1. Insertamos la nueva empresa con el logo
+            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp, url_logo) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db)
             cursor.execute(sql_tienda, valores_tienda)
             
             # Obtenemos el ID asignado automáticamente a esta nueva tienda
@@ -126,7 +135,7 @@ def registrar_tienda():
             cursor.close()
             conexion.close()
             
-            # Redireccionamos exitosamente al login para que el nuevo usuario estrene su cuenta
+            # Redireccionamos exitosamente al login
             return redirect(url_for('login'))
             
         except mysql.connector.Error as err:
@@ -318,17 +327,19 @@ def ver_catalogo(id_tienda):
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         
-        cursor.execute("SELECT nombre_tienda, telefono, ciudad FROM tiendas WHERE id_tienda = %s", (id_tienda,))
+        cursor.execute("SELECT nombre_tienda, telefono, ciudad, url_logo FROM tiendas WHERE id_tienda = %s", (id_tienda,))
         datos_tienda = cursor.fetchone()
         
         if datos_tienda:
             nombre_tienda = datos_tienda[0]
             telefono_whatsapp = datos_tienda[1]
             ciudad_tienda = datos_tienda[2]
+            url_logo = datos_tienda[3]
         else:
             nombre_tienda = "Mi Granero"
             telefono_whatsapp = "573000000000"
             ciudad_tienda = "Colombia"
+            url_logo = '/static/imagenes/default_logo.png'
             
         if termino_busqueda:
             sql_productos = """
@@ -364,6 +375,7 @@ def ver_catalogo(id_tienda):
                                nombre_tienda=nombre_tienda,
                                telefono=telefono_whatsapp,
                                ciudad=ciudad_tienda,
+                               url_logo=url_logo,
                                lista_productos=productos_tienda,
                                categoria_actual=categoria_seleccionada,
                                busqueda_actual=termino_busqueda)
