@@ -63,8 +63,9 @@ def login():
                 # Mandamos directo al panel de administración de SU propia tienda
                 return redirect(url_for('panel_administrador', id_tienda=id_tienda_usuario))
             else:
-                # Si se equivoca, recargamos el login con el mensaje de error
-                return render_template('login.html', error="Usuario o contraseña incorrectos.")
+                # MODIFICACIÓN SOLICITADA: Mensaje con enlace para recuperar
+                mensaje_error = 'Usuario o contraseña incorrectos. <a href="/recuperar-cuenta">¿Olvidaste tus datos? Haz clic aquí</a>'
+                return render_template('login.html', error=mensaje_error)
                 
         except mysql.connector.Error as err:
             return f"<h1>Error de base de datos en Login: {err}</h1>"
