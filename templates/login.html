@@ -117,6 +117,13 @@
             align-items: center;
             gap: 10px;
         }
+        
+        /* Estilo para el enlace dentro del error */
+        .error-alert a {
+            color: #991b1b;
+            text-decoration: underline;
+            font-weight: 700;
+        }
 
         .btn-submit {
             width: 100%;
@@ -174,7 +181,7 @@
 
         {% if error %}
         <div class="error-alert">
-            <span>⚠️</span> {{ error }}
+            <span>⚠️</span> {{ error|safe }}
         </div>
         {% endif %}
 
