@@ -20,9 +20,6 @@ app.config['UPLOAD_FOLDER'] = CARPETA_IMAGENES
 # ==========================================
 # CONFIGURACIÓN DE LA BASE DE DATOS (HeidiSQL)
 # ==========================================
-import os
-import mysql.connector
-
 def obtener_conexion():
     return mysql.connector.connect(
         host=os.environ.get("MYSQLHOST", "reseau.proxy.rlwy.net"),
@@ -376,4 +373,5 @@ def ver_catalogo(id_tienda):
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
