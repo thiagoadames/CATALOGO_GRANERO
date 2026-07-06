@@ -20,13 +20,16 @@ app.config['UPLOAD_FOLDER'] = CARPETA_IMAGENES
 # ==========================================
 # CONFIGURACIÓN DE LA BASE DE DATOS (HeidiSQL)
 # ==========================================
+import os
+import mysql.connector
+
 def obtener_conexion():
     return mysql.connector.connect(
-        host="reseau.proxy.rlwy.net",
-        user="root",        
-        password="edkZloxlaigQCBmHyYkjHjKEPtaMQRbo",               # Tu contraseña configurada de MySQL
-        database="plataforma_catalogos" # Base de datos real
-        port="59970"
+        host=os.environ.get("MYSQLHOST", "reseau.proxy.rlwy.net"),
+        user=os.environ.get("MYSQLUSER", "root"),
+        password=os.environ.get("MYSQLPASSWORD", "edkZloxlaigQCBmHyYkjHjKEPtaMQRbo"),
+        database=os.environ.get("MYSQLDATABASE", "plataforma_catalogos"),
+        port=int(os.environ.get("MYSQLPORT", 59970))
     )
 
 
