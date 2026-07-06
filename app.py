@@ -84,6 +84,8 @@ def registrar_tienda():
         raw_telefono = request.form['telefono'].strip()
         direccion = request.form['direccion'].strip()
         ciudad = request.form['ciudad'].strip()
+        # Captura del nuevo campo de email
+        email_recuperacion = request.form['email_recuperacion'].strip()
         
         # Captura de datos de acceso
         usuario = request.form['usuario'].strip()
@@ -114,10 +116,10 @@ def registrar_tienda():
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # 1. Insertamos la nueva empresa con el logo
-            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp, url_logo) 
-                            VALUES (%s, %s, %s, %s, %s, %s, %s)"""
-            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db)
+            # 1. Insertamos la nueva empresa con el logo y el email de recuperación
+            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp, url_logo, email_recuperacion) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db, email_recuperacion)
             cursor.execute(sql_tienda, valores_tienda)
             
             # Obtenemos el ID asignado automáticamente a esta nueva tienda
@@ -201,7 +203,7 @@ def panel_administrador(id_tienda):
                                
     except mysql.connector.Error as err:
         return f"<h1>Error al cargar el panel de administración: {err}</h1>"
-
+        
 
 # ==========================================
 # FORMULARIO AGREGAR PRODUCTO
