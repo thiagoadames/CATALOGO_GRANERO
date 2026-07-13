@@ -54,7 +54,12 @@
     <h2>Cambiar Contraseña</h2>
     <p>Ingresa tu nueva clave de acceso.</p>
     <form method="POST">
-        <input type="password" name="nueva_clave" placeholder="Escribe tu nueva contraseña" required>
+        <input type="password" 
+               name="nueva_clave" 
+               placeholder="Solo letras y números" 
+               pattern="[A-Za-z0-9]+" 
+               title="La contraseña solo debe contener letras y números, sin espacios ni caracteres especiales." 
+               required>
         <button type="submit">Actualizar Clave</button>
     </form>
     <a href="/tienda/{{ id_tienda }}/admin">Regresar al panel</a>

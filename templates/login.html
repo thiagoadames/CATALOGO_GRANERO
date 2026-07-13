@@ -196,7 +196,11 @@
             <div class="form-group">
                 <label for="contrasena">Contraseña</label>
                 <div class="input-wrapper">
-                    <input type="password" id="contrasena" name="contrasena" class="form-control" placeholder="••••••••" required>
+                    <input type="password" id="contrasena" name="contrasena" class="form-control" 
+                           placeholder="Solo letras y números" 
+                           pattern="[A-Za-z0-9]+" 
+                           title="La contraseña solo debe contener letras y números, sin espacios ni caracteres especiales." 
+                           required>
                 </div>
             </div>
 

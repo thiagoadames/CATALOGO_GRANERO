@@ -39,6 +39,10 @@ def login():
         usuario_ingresado = request.form['usuario']
         contrasena_ingresada = request.form['contrasena']
         
+        # Validación alfanumérica en el servidor
+        if not re.match(r'^[A-Za-z0-9]+$', contrasena_ingresada):
+            return render_template('login.html', error="La contraseña solo debe contener letras y números.")
+        
         try:
             conexion = obtener_conexion()
             cursor = conexion.cursor()
@@ -137,6 +141,10 @@ def registrar_tienda():
         # Captura de datos de acceso
         usuario = request.form['usuario'].strip()
         contrasena = request.form['contrasena'].strip()
+
+        # Validación alfanumérica en el servidor
+        if not re.match(r'^[A-Za-z0-9]+$', contrasena):
+            return "<h1>Error: La contraseña debe ser alfanumérica.</h1><a href='/registrar-tienda'>Volver</a>"
         
         # Gestión del logo
         url_logo_db = '/static/imagenes/default_logo.png'
@@ -433,7 +441,7 @@ def ver_catalogo(id_tienda):
         return f"<h1>Error de base de datos en Catálogo: {err}</h1>"
 
 # =========================================================================
-# NUEVA RUTA: CAMBIAR CONTRASEÑA
+# RUTA: CAMBIAR CONTRASEÑA (CON BLINDAJE ALFANUMÉRICO)
 # =========================================================================
 @app.route('/tienda/<int:id_tienda>/cambiar-clave', methods=['GET', 'POST'])
 def cambiar_clave(id_tienda):
@@ -442,6 +450,10 @@ def cambiar_clave(id_tienda):
 
     if request.method == 'POST':
         nueva_clave = request.form['nueva_clave']
+        
+        # Validación alfanumérica en el servidor
+        if not re.match(r'^[A-Za-z0-9]+$', nueva_clave):
+            return "<h1>Error: La contraseña solo puede contener letras y números, sin espacios ni caracteres especiales.</h1><a href='javascript:history.back()'>Volver atrás</a>", 400
         
         try:
             conexion = obtener_conexion()
