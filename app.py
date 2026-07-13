@@ -32,6 +32,29 @@ def obtener_conexion():
 
 
 # =========================================================================
+# MIDDLEWARE DE SEGURIDAD REFORZADA (HEADERS GLOBALES)
+# =========================================================================
+@app.after_request
+def añadir_headers_seguridad(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
+
+
+# =========================================================================
+# MANEJO GLOBAL DE ERRORES AMIGABLES
+# =========================================================================
+@app.errorhandler(404)
+def pagina_no_encontrada(e):
+    return render_template('login.html', error="La página solicitada no existe o la URL cambió. Por favor inicia sesión."), 404
+
+@app.errorhandler(500)
+def error_interno_servidor(e):
+    return "<h1>Error Interno del Servidor</h1><p>Ocurrió un inconveniente con los servicios. Inténtalo de nuevo más tarde.</p>", 500
+
+
+# =========================================================================
 # CONTROL DE ACCESO (LOGIN INTELIGENTE DINÁMICO CON VERIFICACIÓN DE HASH)
 # =========================================================================
 @app.route('/login', methods=['GET', 'POST'])
@@ -175,9 +198,9 @@ def registrar_tienda():
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # 1. Insertamos la nueva empresa con el logo y email_recuperacion
-            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp, url_logo, email_recuperacion) 
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+            # 1. Insertamos la nueva empresa con el logo y email_recuperacion (Y valores por defecto del nuevo menú)
+            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, city, ciudad, telefono_whatsapp, url_logo, email_recuperacion, color_primario, tipo_negocio, configuracion_subcarpetas) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, '#0056b3', 'General', 0)"""
             valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db, email_recuperacion)
             cursor.execute(sql_tienda, valores_tienda)
             
@@ -230,7 +253,7 @@ def inicio():
 
 
 # =========================================================================
-# PANEL DE ADMINISTRACIÓN
+# PANEL DE ADMINISTRACIÓN (ACTUALIZADO CON DATOS E HIGHLIGHTS DEL MENÚ)
 # =========================================================================
 @app.route('/tienda/<int:id_tienda>/admin')
 def panel_administrador(id_tienda):
@@ -239,12 +262,17 @@ def panel_administrador(id_tienda):
         
     try:
         conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        cursor = conexion.cursor(dictionary=True)
         
-        cursor.execute("SELECT nombre_tienda FROM tiendas WHERE id_tienda = %s", (id_tienda,))
+        # Recuperamos la información completa de la tienda para usarla en el menú dinámico del panel
+        cursor.execute("SELECT * FROM tiendas WHERE id_tienda = %s", (id_tienda,))
         datos_tienda = cursor.fetchone()
-        nombre_tienda = datos_tienda[0] if datos_tienda else "Mi Granero Piloto"
         
+        nombre_tienda = datos_tienda['nombre_tienda'] if datos_tienda else "Mi Granero Piloto"
+        slug_tienda = datos_tienda['slug'] if datos_tienda else "default-slug"
+        color_tienda = datos_tienda.get('color_primario', '#0056b3') if datos_tienda else '#0056b3'
+        
+        # Ejecutamos búsqueda limpia de productos vinculados
         cursor.execute("""
             SELECT id_producto, nombre_producto, precio, categoria, descripcion, url_imagen, id_tienda 
             FROM productos 
@@ -255,9 +283,13 @@ def panel_administrador(id_tienda):
         cursor.close()
         conexion.close()
         
+        # Pasamos los nuevos campos para renderizar los accesos en el menú interactivo
         return render_template('panel_admin.html', 
                                id_tienda=id_tienda, 
                                nombre_tienda=nombre_tienda, 
+                               slug_tienda=slug_tienda,
+                               color_tienda=color_tienda,
+                               tienda_completa=datos_tienda,
                                lista_productos=productos_tienda)
                                
     except mysql.connector.Error as err:
@@ -324,7 +356,7 @@ def editar_producto(id_tienda, id_producto):
 
     try:
         conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        cursor = conexion.cursor(dictionary=True)
 
         if request.method == 'POST':
             nombre = request.form['nombre']
@@ -374,7 +406,7 @@ def editar_producto(id_tienda, id_producto):
 
 
 # =========================================================================
-# VISTA PÚBLICA
+# VISTA PÚBLICA (ADAPTADA CON DETALLES DE COLORES Y TIPO DE NEGOCIO DESDE BD)
 # =========================================================================
 @app.route('/tienda/<int:id_tienda>/catalogo')
 def ver_catalogo(id_tienda):
@@ -386,21 +418,25 @@ def ver_catalogo(id_tienda):
             termino_busqueda = ""
         
         conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        cursor = conexion.cursor(dictionary=True)
         
-        cursor.execute("SELECT nombre_tienda, telefono, ciudad, url_logo FROM tiendas WHERE id_tienda = %s", (id_tienda,))
+        cursor.execute("SELECT nombre_tienda, telefono, ciudad, url_logo, color_primario, tipo_negocio, configuracion_subcarpetas FROM tiendas WHERE id_tienda = %s", (id_tienda,))
         datos_tienda = cursor.fetchone()
         
         if datos_tienda:
-            nombre_tienda = datos_tienda[0]
-            telefono_whatsapp = datos_tienda[1]
-            ciudad_tienda = datos_tienda[2]
-            url_logo = datos_tienda[3]
+            nombre_tienda = datos_tienda['nombre_tienda']
+            telefono_whatsapp = datos_tienda['telefono']
+            ciudad_tienda = datos_tienda['ciudad']
+            url_logo = datos_tienda['url_logo']
+            color_primario = datos_tienda.get('color_primario', '#0056b3')
+            tipo_negocio = datos_tienda.get('tipo_negocio', 'General')
         else:
             nombre_tienda = "Mi Granero"
             telefono_whatsapp = "573000000000"
             ciudad_tienda = "Colombia"
             url_logo = '/static/imagenes/default_logo.png'
+            color_primario = '#0056b3'
+            tipo_negocio = 'General'
             
         if termino_busqueda:
             sql_productos = """
@@ -437,12 +473,100 @@ def ver_catalogo(id_tienda):
                                telefono=telefono_whatsapp,
                                ciudad=ciudad_tienda,
                                url_logo=url_logo,
+                               color_primario=color_primario,
+                               tipo_negocio=tipo_negocio,
                                lista_productos=productos_tienda,
                                categoria_actual=categoria_seleccionada,
                                busqueda_actual=termino_busqueda)
                                
     except mysql.connector.Error as err:
         return f"<h1>Error de base de datos en Catálogo: {err}</h1>"
+
+
+# =========================================================================
+# ACCESO DIRECTO POR LINK DE SLUG (IDENTIFICADOR EXCLUSIVO DE CATÁLOGO)
+# =========================================================================
+@app.route('/c/<string:slug_tienda>')
+def ver_catalogo_por_slug(slug_tienda):
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT id_tienda FROM tiendas WHERE slug = %s", (slug_tienda.strip().lower(),))
+        tienda_encontrada = cursor.fetchone()
+        cursor.close()
+        conexion.close()
+        
+        if tienda_encontrada:
+            # Redirigimos internamente usando la lógica limpia de id_tienda
+            return redirect(url_for('ver_catalogo', id_tienda=tienda_encontrada['id_tienda'], **request.args))
+        else:
+            return "<h1>Catálogo no encontrado</h1><p>El enlace ingresado no corresponde a ninguna tienda registrada.</p><a href='/login'>Ir al acceso</a>", 404
+    except Exception as e:
+        return f"<h1>Error al procesar el enlace de catálogo: {e}</h1>", 500
+
+
+# =========================================================================
+# RUTA: MENÚ DE CONFIGURACIÓN DE LA TIENDA (COLORES, SLUG, TIPO NEGOCIO)
+# =========================================================================
+@app.route('/tienda/<int:id_tienda>/configuracion', methods=['GET', 'POST'])
+def configurar_tienda(id_tienda):
+    if not session.get('admin_logeado'):
+        return redirect(url_for('login'))
+        
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor(dictionary=True)
+        
+        if request.method == 'POST':
+            color_ingresado = request.form['color_primario'].strip()
+            tipo_negocio = request.form['tipo_negocio'].strip()
+            subcarpetas = 1 if 'subcarpetas' in request.form else 0
+            slug_ingresado = request.form['slug'].strip().lower()
+            
+            # 1. Validación de formato de color Hexadecimal (#RRGGBB)
+            if not re.match(r'^#[A-Fa-f0-9]{6}$', color_ingresado):
+                cursor.close(); conexion.close()
+                return "<h1>Error: Formato de color inválido. Debe ser un formato Hexadecimal (#0056b3).</h1><a href='javascript:history.back()'>Volver</a>", 400
+            
+            # 2. Validación de caracteres en el slug
+            slug_ingresado = re.sub(r'[^a-z0-9\s-]', '', slug_ingresado)
+            slug_ingresado = re.sub(r'[\s-]+', '-', slug_ingresado).strip('-')
+            
+            if not slug_ingresado:
+                cursor.close(); conexion.close()
+                return "<h1>Error: El slug asignado no es válido.</h1><a href='javascript:history.back()'>Volver</a>", 400
+                
+            # 3. Validación de unicidad de Slug (Para no duplicar el enlace dinámico de otro cliente)
+            cursor.execute("SELECT id_tienda FROM tiendas WHERE slug = %s AND id_tienda != %s", (slug_ingresado, id_tienda))
+            conflicto_slug = cursor.fetchone()
+            
+            if conflicto_slug:
+                cursor.close(); conexion.close()
+                return "<h1>Error: Este nombre de enlace ya está siendo utilizado por otra tienda. Elige uno diferente.</h1><a href='javascript:history.back()'>Volver</a>", 400
+            
+            # 4. Actualización limpia de parámetros en la base de datos
+            sql_update = """
+                UPDATE tiendas 
+                SET color_primario = %s, tipo_negocio = %s, configuracion_subcarpetas = %s, slug = %s 
+                WHERE id_tienda = %s
+            """
+            cursor.execute(sql_update, (color_ingresado, tipo_negocio, subcarpetas, slug_ingresado, id_tienda))
+            conexion.commit()
+            
+            cursor.close()
+            conexion.close()
+            return redirect(url_for('panel_administrador', id_tienda=id_tienda))
+            
+        # Petición GET: Recuperar datos para precargar los inputs en el menú desplegable/vista
+        cursor.execute("SELECT * FROM tiendas WHERE id_tienda = %s", (id_tienda,))
+        tienda_actual = cursor.fetchone()
+        cursor.close()
+        conexion.close()
+        
+        return render_template('configuracion.html', id_tienda=id_tienda, tienda=tienda_actual)
+        
+    except mysql.connector.Error as err:
+        return f"<h1>Error en el módulo de configuración: {err}</h1>"
 
 
 # =========================================================================
