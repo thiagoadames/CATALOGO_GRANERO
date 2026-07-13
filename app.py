@@ -129,7 +129,6 @@ def recuperar_cuenta():
             
             if resultado:
                 # Nota: Al usar Hashing, el mensaje de WhatsApp enviará un recordatorio indicando que la clave está encriptada
-                # Por seguridad, lo ideal en producción es dirigir al usuario a cambiar-clave, pero mantenemos tu lógica de flujo:
                 mensaje = f"Hola, tu usuario para {resultado['nombre_tienda']} es: {resultado['usuario']}. Tu contraseña está protegida por seguridad, si no la recuerdas solicítale al administrador restablecerla o usa el panel."
                 link_whatsapp = f"https://wa.me/{resultado['telefono_whatsapp']}?text={mensaje}"
                 
@@ -198,10 +197,13 @@ def registrar_tienda():
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # 1. Insertamos la nueva empresa con el logo y email_recuperacion (Y valores por defecto del nuevo menú)
+            # 1. Insertamos la nueva empresa: Se corregió la cantidad de parámetros (12 campos y 12 valores)
             sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, city, ciudad, telefono_whatsapp, url_logo, email_recuperacion, color_primario, tipo_negocio, configuracion_subcarpetas) 
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, '#0056b3', 'General', 0)"""
-            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db, email_recuperacion)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            
+            # Se añaden valores por defecto para 'city', color, tipo y subcarpetas
+            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, ciudad, whatsapp_final, url_logo_db, email_recuperacion, '#0056b3', 'General', 0)
+            
             cursor.execute(sql_tienda, valores_tienda)
             
             # Obtenemos el ID asignado automáticamente a esta nueva tienda
@@ -209,7 +211,7 @@ def registrar_tienda():
             
             # 2. Insertamos el nuevo dueño en la tabla 'usuarios' guardando la contraseña encriptada
             sql_usuario = """INSERT INTO usuarios (usuario, contrasena, id_tienda) 
-                             VALUES (%s, %s, %s)"""
+                              VALUES (%s, %s, %s)"""
             valores_usuario = (usuario, contrasena_encriptada, nuevo_id_tienda)
             cursor.execute(sql_usuario, valores_usuario)
             
