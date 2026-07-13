@@ -3,6 +3,7 @@ import mysql.connector
 import os
 import re  # Librería necesaria para limpiar textos y armar el slug de la URL
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
@@ -31,7 +32,7 @@ def obtener_conexion():
 
 
 # =========================================================================
-# CONTROL DE ACCESO (LOGIN INTELIGENTE DINÁMICO)
+# CONTROL DE ACCESO (LOGIN INTELIGENTE DINÁMICO CON VERIFICACIÓN DE HASH)
 # =========================================================================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -45,29 +46,29 @@ def login():
         
         try:
             conexion = obtener_conexion()
-            cursor = conexion.cursor()
+            cursor = conexion.cursor(dictionary=True)
             
-            # Consultamos el usuario, la contraseña Y traemos el id_tienda asociado
-            cursor.execute("SELECT id_usuario, id_tienda FROM usuarios WHERE usuario = %s AND contrasena = %s", 
-                           (usuario_ingresado, contrasena_ingresada))
+            # Consultamos el usuario por su nombre para obtener su hash de contraseña y su id_tienda
+            cursor.execute("SELECT id_usuario, contrasena, id_tienda FROM usuarios WHERE usuario = %s", (usuario_ingresado,))
             usuario_encontrado = cursor.fetchone()
             
             cursor.close()
             conexion.close()
             
-            if usuario_encontrado:
+            # Verificamos si el usuario existe y si el hash de la contraseña coincide
+            if usuario_encontrado and check_password_hash(usuario_encontrado['contrasena'], contrasena_ingresada):
                 # ¡Credenciales correctas! Guardamos la sesión en el servidor
                 session['admin_logeado'] = True
                 session['usuario_nombre'] = usuario_ingresado
                 
                 # Guardamos dinámicamente el id_tienda asignado a este administrador
-                id_tienda_usuario = usuario_encontrado[1] if usuario_encontrado[1] else 1
+                id_tienda_usuario = usuario_encontrado['id_tienda'] if usuario_encontrado['id_tienda'] else 1
                 session['id_tienda'] = id_tienda_usuario
                 
                 # Mandamos directo al panel de administración de SU propia tienda
                 return redirect(url_for('panel_administrador', id_tienda=id_tienda_usuario))
             else:
-                # MODIFICACIÓN: Mensaje con enlace para recuperar
+                # Mensaje con enlace para recuperar
                 mensaje_error = 'Usuario o contraseña incorrectos. <a href="/recuperar-cuenta">¿Olvidaste tus datos?</a>'
                 return render_template('login.html', error=mensaje_error)
                 
@@ -104,8 +105,9 @@ def recuperar_cuenta():
             conexion.close()
             
             if resultado:
-                # Armamos el mensaje para WhatsApp
-                mensaje = f"Hola, tus credenciales para {resultado['nombre_tienda']} son: Usuario: {resultado['usuario']}, Contraseña: {resultado['contrasena']}"
+                # Nota: Al usar Hashing, el mensaje de WhatsApp enviará un recordatorio indicando que la clave está encriptada
+                # Por seguridad, lo ideal en producción es dirigir al usuario a cambiar-clave, pero mantenemos tu lógica de flujo:
+                mensaje = f"Hola, tu usuario para {resultado['nombre_tienda']} es: {resultado['usuario']}. Tu contraseña está protegida por seguridad, si no la recuerdas solicítale al administrador restablecerla o usa el panel."
                 link_whatsapp = f"https://wa.me/{resultado['telefono_whatsapp']}?text={mensaje}"
                 
                 return f"""
@@ -125,7 +127,7 @@ def recuperar_cuenta():
 
 
 # =========================================================================
-# REGISTRO AUTOMATIZADO DE NUEVAS EMPRESAS / TIENDAS (CON SOPORTE SLUG)
+# REGISTRO AUTOMATIZADO CON ENCRIPTACIÓN DE CONTRASEÑA (HASH)
 # =========================================================================
 @app.route('/registrar-tienda', methods=['GET', 'POST'])
 def registrar_tienda():
@@ -135,7 +137,6 @@ def registrar_tienda():
         raw_telefono = request.form['telefono'].strip()
         direccion = request.form['direccion'].strip()
         ciudad = request.form['ciudad'].strip()
-        # Captura del email de recuperación
         email_recuperacion = request.form['email_recuperacion'].strip()
         
         # Captura de datos de acceso
@@ -145,6 +146,9 @@ def registrar_tienda():
         # Validación alfanumérica en el servidor
         if not re.match(r'^[A-Za-z0-9]+$', contrasena):
             return "<h1>Error: La contraseña debe ser alfanumérica.</h1><a href='/registrar-tienda'>Volver</a>"
+        
+        # Generamos el hash seguro de la contraseña antes de guardarla
+        contrasena_encriptada = generate_password_hash(contrasena)
         
         # Gestión del logo
         url_logo_db = '/static/imagenes/default_logo.png'
@@ -180,10 +184,10 @@ def registrar_tienda():
             # Obtenemos el ID asignado automáticamente a esta nueva tienda
             nuevo_id_tienda = cursor.lastrowid
             
-            # 2. Insertamos el nuevo dueño en la tabla 'usuarios' vinculándolo a su tienda
+            # 2. Insertamos el nuevo dueño en la tabla 'usuarios' guardando la contraseña encriptada
             sql_usuario = """INSERT INTO usuarios (usuario, contrasena, id_tienda) 
                              VALUES (%s, %s, %s)"""
-            valores_usuario = (usuario, contrasena, nuevo_id_tienda)
+            valores_usuario = (usuario, contrasena_encriptada, nuevo_id_tienda)
             cursor.execute(sql_usuario, valores_usuario)
             
             # Confirmamos la transacción en la Base de Datos
@@ -440,8 +444,9 @@ def ver_catalogo(id_tienda):
     except mysql.connector.Error as err:
         return f"<h1>Error de base de datos en Catálogo: {err}</h1>"
 
+
 # =========================================================================
-# RUTA: CAMBIAR CONTRASEÑA (CON BLINDAJE ALFANUMÉRICO)
+# RUTA: CAMBIAR CONTRASEÑA (CON BLINDAJE Y ENCRIPTACIÓN HASH)
 # =========================================================================
 @app.route('/tienda/<int:id_tienda>/cambiar-clave', methods=['GET', 'POST'])
 def cambiar_clave(id_tienda):
@@ -455,12 +460,16 @@ def cambiar_clave(id_tienda):
         if not re.match(r'^[A-Za-z0-9]+$', nueva_clave):
             return "<h1>Error: La contraseña solo puede contener letras y números, sin espacios ni caracteres especiales.</h1><a href='javascript:history.back()'>Volver atrás</a>", 400
         
+        # Generamos el hash seguro de la nueva contraseña
+        nueva_clave_encriptada = generate_password_hash(nueva_clave)
+        
         try:
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
+            # Actualizamos la base de datos con la contraseña encriptada
             sql = "UPDATE usuarios SET contrasena = %s WHERE id_tienda = %s"
-            cursor.execute(sql, (nueva_clave, id_tienda))
+            cursor.execute(sql, (nueva_clave_encriptada, id_tienda))
             conexion.commit()
             
             cursor.close()
