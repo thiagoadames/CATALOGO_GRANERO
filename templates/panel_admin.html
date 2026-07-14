@@ -11,118 +11,78 @@
         
         .header-admin {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            color: white; padding: 30px 20px; text-align: center;
-            border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+            color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
         }
-        .header-admin h1 { font-size: 24px; font-weight: 700; margin-bottom: 5px; }
-        .header-admin p { font-size: 14px; opacity: 0.9; margin-bottom: 20px; }
         
-        .top-buttons { display: flex; justify-content: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-        .btn-top {
-            padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
-            text-decoration: none; transition: all 0.3s; display: flex; align-items: center; gap: 6px;
-            cursor: pointer; border: none;
+        /* Menú Hamburguesa */
+        .hamburger { font-size: 28px; cursor: pointer; color: white; }
+        .side-menu {
+            height: 100%; width: 0; position: fixed; z-index: 1000; top: 0; right: 0;
+            background-color: #ffffff; overflow-x: hidden; transition: 0.5s; padding-top: 60px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
         }
-        .btn-view { background: white; color: #1e3a8a; }
-        .btn-share { background: #25D366; color: white; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2); }
-        .btn-logout { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); }
-        .btn-password { background: #f59e0b; color: white; }
+        .side-menu a, .side-menu .menu-item { padding: 15px 25px; text-decoration: none; font-size: 16px; color: #1e293b; display: block; transition: 0.3s; cursor: pointer; }
+        .side-menu a:hover { background-color: #f1f5f9; }
+        .close-btn { position: absolute; top: 20px; right: 25px; font-size: 30px; cursor: pointer; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        
-        .section-title-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .section-title-box h2 { font-size: 20px; font-weight: 700; color: #0f172a; }
-        
-        .btn-add {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;
-            padding: 12px 20px; border-radius: 14px; font-weight: 600; text-decoration: none;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); font-size: 14px; transition: 0.3s;
-        }
-        .btn-add:hover { transform: translateY(-2px); }
-
-        .product-card {
-            background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px;
-            display: flex; gap: 15px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            border: 1px solid #e2e8f0;
-        }
-        .product-img {
-            width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background-color: #f1f5f9;
-        }
-        .product-info { flex: 1; }
-        .product-info h3 { font-size: 16px; font-weight: 700; color: #1e293b; text-transform: capitalize; }
-        .product-info .price { font-size: 15px; font-weight: 700; color: #10b981; margin: 4px 0; }
-        
-        .actions-container { display: flex; gap: 8px; margin-top: 8px; }
-
-        .btn-edit {
-            background-color: #f0fdf4; color: #16a34a; border: none; padding: 6px 12px;
-            border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
-            text-decoration: none; transition: 0.3s; display: inline-flex; align-items: center; gap: 4px;
-        }
-        .btn-edit:hover { background-color: #dcfce7; }
-        
-        .btn-delete {
-            background-color: #fef2f2; color: #ef4444; border: none; padding: 6px 12px;
-            border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
-            transition: 0.3s; display: inline-flex; align-items: center; gap: 4px;
-        }
-        .btn-delete:hover { background-color: #fee2e2; }
+        .btn-add { background: #10b981; color: white; padding: 12px 20px; border-radius: 14px; text-decoration: none; display: inline-block; }
+        .product-card { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; border: 1px solid #e2e8f0; }
+        .product-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div class="header-admin">
-        <h1>⚙️ Panel de Control</h1>
-        <p>Tienda: <strong>{{ nombre_tienda }}</strong></p>
-        
-        <div class="top-buttons">
-            <a href="{{ url_for('ver_catalogo', id_tienda=id_tienda) }}" class="btn-top btn-view">👁️ Ver Catálogo</a>
-            <button onclick="copiarLinkCatálogo()" class="btn-top btn-share">🔗 Compartir Catálogo</button>
-            <a href="{{ url_for('cambiar_clave', id_tienda=id_tienda) }}" class="btn-top btn-password">🔑 Cambiar Clave</a>
-            <a href="/logout" class="btn-top btn-logout">🚪 Salir</a>
+        <div>
+            <h1>⚙️ Panel</h1>
+            <p>{{ nombre_tienda }}</p>
         </div>
+        <div class="hamburger" onclick="toggleMenu()">☰</div>
+    </div>
+
+    <!-- Menú Lateral -->
+    <div id="sideMenu" class="side-menu">
+        <span class="close-btn" onclick="toggleMenu()">&times;</span>
+        <h3 style="padding: 0 25px; margin-bottom: 20px;">Configuración</h3>
+        <a href="{{ url_for('configurar_tienda', id_tienda=id_tienda) }}">🎨 Personalizar Colores y Logo</a>
+        <a href="{{ url_for('cambiar_clave', id_tienda=id_tienda) }}">🔑 Cambiar Contraseña</a>
+        <div class="menu-item">
+            <label>📂 Activar Subcarpetas</label>
+            <input type="checkbox" {% if tienda_completa.configuracion_subcarpetas %}checked{% endif %} onchange="guardarConfigSub(this)">
+        </div>
+        <hr>
+        <a href="/logout" style="color: #ef4444;">🚪 Cerrar Sesión</a>
     </div>
 
     <div class="container">
-        <div class="section-title-box">
+        <div style="display:flex; justify-content:space-between; margin: 20px 0;">
             <h2>Mis Productos</h2>
-            <a href="/tienda/{{ id_tienda }}/agregar" class="btn-add">➕ Nuevo Producto</a>
+            <a href="/tienda/{{ id_tienda }}/agregar" class="btn-add">➕ Nuevo</a>
         </div>
 
         {% for producto in lista_productos %}
         <div class="product-card">
-            
-            <img src="/static/imagenes/{{ producto[5]|string|replace('static/imagenes/', '')|replace('/', '') }}" 
-                 class="product-img" 
-                 alt="Foto de {{ producto[1] }}"
-                 onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=200';">
-
+            <img src="{{ producto[5] }}" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=200';">
             <div class="product-info">
                 <h3>{{ producto[1] }}</h3>
-                <p class="price">${{ "{:,.0f}".format(producto[2]|float) if producto[2] else "0" }} COP</p>
-                
-                <div class="actions-container">
-                    <a href="{{ url_for('editar_producto', id_tienda=id_tienda, id_producto=producto[0]) }}" class="btn-edit">
-                        ✏️ Editar
-                    </a>
-                </div>
+                <p>${{ "{:,.0f}".format(producto[2]|float) }}</p>
+                <a href="{{ url_for('editar_producto', id_tienda=id_tienda, id_producto=producto[0]) }}">✏️ Editar</a>
             </div>
         </div>
         {% endfor %}
     </div>
 
     <script>
-        function copiarLinkCatálogo() {
-            const enlaceReal = window.location.origin + "/tienda/{{ id_tienda }}/catalogo";
-            
-            navigator.clipboard.writeText(enlaceReal).then(() => {
-                alert("¡Link del catálogo copiado! Ya puedes ir a WhatsApp y pegarlo para tus clientes.");
-            }).catch(err => {
-                console.error("No se pudo copiar el enlace automáticamente: ", err);
-            });
+        function toggleMenu() {
+            const menu = document.getElementById("sideMenu");
+            menu.style.width = menu.style.width === "280px" ? "0" : "280px";
+        }
+        function guardarConfigSub(checkbox) {
+            // Aquí puedes añadir un fetch hacia una ruta backend para guardar el estado del checkbox
+            alert("Preferencia de subcarpetas guardada: " + checkbox.checked);
         }
     </script>
-
 </body>
 </html>

@@ -4,8 +4,31 @@ import os
 import re  # Librería necesaria para limpiar textos y armar el slug de la URL
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+import google.generativeai as genai
 
 app = Flask(__name__)
+
+# =========================================================================
+# CONFIGURACIÓN DE IA (GEMINI)
+# =========================================================================
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "TU_API_KEY_AQUI"))
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+def generar_descripcion_ia(nombre_producto):
+    try:
+        prompt = f"Genera una descripción corta y vendedora para un producto llamado {nombre_producto}."
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except:
+        return "Descripción profesional del producto."
+
+def clasificar_producto(nombre_producto):
+    try:
+        prompt = f"Clasifica '{nombre_producto}' en: Víveres, Aseo, Lácteos, Bebidas. Responde solo el nombre de la categoría."
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except:
+        return "General"
 
 # =========================================================================
 # CLAVE SECRETA: Necesaria para activar y encriptar las sesiones (session)
@@ -299,7 +322,7 @@ def panel_administrador(id_tienda):
         
 
 # ==========================================
-# FORMULARIO AGREGAR PRODUCTO
+# FORMULARIO AGREGAR PRODUCTO (CON IA)
 # ==========================================
 @app.route('/tienda/<int:id_tienda>/agregar', methods=['GET', 'POST'])
 def agregar_producto(id_tienda):
@@ -309,8 +332,9 @@ def agregar_producto(id_tienda):
     if request.method == 'POST':
         nombre = request.form['nombre']
         precio = request.form['precio']
-        categoria = request.form['categoria']  
-        descripcion = request.form['descripcion']
+        # Usamos IA si no envían categoría o descripción
+        categoria = request.form.get('categoria') or clasificar_producto(nombre)
+        descripcion = request.form.get('descripcion') or generar_descripcion_ia(nombre)
         
         if 'imagen' not in request.files:
             return "<h1>Error: No se detectó el campo de imagen en el formulario.</h1>", 400
