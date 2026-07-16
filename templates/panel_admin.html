@@ -64,11 +64,11 @@
 
         {% for producto in lista_productos %}
         <div class="product-card">
-            <img src="{{ producto[5] }}" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=200';">
+            <img src="{{ producto.url_imagen }}" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=200';">
             <div class="product-info">
-                <h3>{{ producto[1] }}</h3>
-                <p>${{ "{:,.0f}".format(producto[2]|float) }}</p>
-                <a href="{{ url_for('editar_producto', id_tienda=id_tienda, id_producto=producto[0]) }}">✏️ Editar</a>
+                <h3>{{ producto.nombre_producto }}</h3>
+                <p>${{ "{:,.0f}".format(producto.precio|float) }}</p>
+                <a href="{{ url_for('editar_producto', id_tienda=id_tienda, id_producto=producto.id_producto) }}">✏️ Editar</a>
             </div>
         </div>
         {% endfor %}

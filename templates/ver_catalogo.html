@@ -281,24 +281,24 @@
 
     <div class="grid-productos" id="contenedor-productos">
         {% for producto in lista_productos %}
-        <div class="card" data-categoria="{{ producto[3]|string|lower|trim }}">
+        <div class="card" data-categoria="{{ producto.categoria|string|lower|trim }}">
             
             <div class="container-img">
-                {% if producto[5] and producto[5].strip() != '' %}
-                    <img class="card-img" src="{{ producto[5] }}" alt="Imagen producto">
+                {% if producto.url_imagen and producto.url_imagen.strip() != '' %}
+                    <img class="card-img" src="{{ producto.url_imagen }}" alt="Imagen producto">
                 {% else %}
                     <div style="color: #94a3b8; font-size: 12px;">📦 Sin foto</div>
                 {% endif %}
             </div>
             
             <div class="card-body">
-                <h3 class="card-title">{{ producto[1] }}</h3>
+                <h3 class="card-title">{{ producto.nombre_producto }}</h3>
                 
-                <p class="card-desc">{{ producto[4] if producto[4] else 'Disponible en tienda.' }}</p>
+                <p class="card-desc">{{ producto.descripcion if producto.descripcion else 'Disponible en tienda.' }}</p>
                 
-                <div class="card-precio" data-valor="{{ producto[2] }}">${{ producto[2] }} COP</div>
+                <div class="card-precio" data-valor="{{ producto.precio }}">${{ producto.precio }} COP</div>
                 
-                <div class="product-action-container" data-nombre-prod="{{ producto[1] }}" data-precio-prod="{{ producto[2] }}">
+                <div class="product-action-container" data-nombre-prod="{{ producto.nombre_producto }}" data-precio-prod="{{ producto.precio }}">
                     <button class="btn-add-cart">
                         🛒 Agregar al Carrito
                     </button>
