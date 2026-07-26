@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Categorías</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .contenedor {
+            max-width: 600px;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .acciones a {
+            margin-left: 10px;
+            text-decoration: none;
+            color: #0056b3;
+        }
+        .acciones a.eliminar {
+            color: #d9534f;
+        }
+        .volver {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Gestionar Categorías</h1>
+
+        <form method="POST" action="/tienda/{{ id_tienda }}/categorias">
+            <input type="text" name="nombre_categoria" placeholder="Nombre de la nueva categoría" required>
+            <button type="submit">Agregar</button>
+        </form>
+
+        <ul>
+            {% for categoria in lista_categorias %}
+            <li>
+                <form method="POST" action="/tienda/{{ id_tienda }}/categorias/editar/{{ categoria.id_categoria }}" style="display:flex; flex:1; gap:10px;">
+                    <input type="text" name="nombre_categoria" value="{{ categoria.nombre_categoria }}" style="flex:1;">
+                    <button type="submit">Guardar</button>
+                </form>
+                <div class="acciones">
+                    <a href="/tienda/{{ id_tienda }}/categorias/eliminar/{{ categoria.id_categoria }}" class="eliminar" onclick="return confirm('¿Seguro que quieres eliminar esta categoría?');">Eliminar</a>
+                </div>
+            </li>
+            {% else %}
+            <li>No hay categorías creadas todavía.</li>
+            {% endfor %}
+        </ul>
+
+        <a class="volver" href="/tienda/{{ id_tienda }}/admin">← Volver al panel</a>
+    </div>
+</body>
+</html>
