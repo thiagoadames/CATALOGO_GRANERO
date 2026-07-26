@@ -155,11 +155,9 @@
         <div class="form-group">
             <label for="categoria">Categoría / Subcarpeta:</label>
             <select id="categoria" name="categoria" required>
-                <option value="abarrotes" {% if producto.categoria == 'abarrotes' %}selected{% endif %}>🌾 Abarrotes</option>
-                <option value="lacteos" {% if producto.categoria == 'lacteos' %}selected{% endif %}>🥛 Lácteos</option>
-                <option value="aseo" {% if producto.categoria == 'aseo' %}selected{% endif %}>🧼 Aseo</option>
-                <option value="dulceria" {% if producto.categoria == 'dulceria' %}selected{% endif %}>🍬 Dulcería</option>
-                <option value="bebidas" {% if producto.categoria == 'bebidas' %}selected{% endif %}>🍾 Bebidas / Licores</option>
+                {% for cat in lista_categorias %}
+                <option value="{{ cat.id_categoria }}" {% if producto.categoria == cat.id_categoria %}selected{% endif %}>{{ cat.nombre_categoria }}</option>
+                {% endfor %}
             </select>
         </div>
 

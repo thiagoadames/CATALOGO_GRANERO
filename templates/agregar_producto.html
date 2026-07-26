@@ -67,11 +67,9 @@
                     <span>🥞</span>
                     <select name="categoria" required>
                         <option value="" disabled selected>Selecciona una categoría...</option>
-                        <option value="abarrotes">🌾 Abarrotes</option>
-                        <option value="lacteos">🥛 Lácteos</option>
-                        <option value="aseo">🧼 Aseo</option>
-                        <option value="dulceria">🍬 Dulcería / Mecato</option>
-                         <option value="bebidas">🍾Bebidas</option>
+                        {% for cat in lista_categorias %}
+                        <option value="{{ cat.id_categoria }}">{{ cat.nombre_categoria }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
