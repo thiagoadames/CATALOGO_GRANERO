@@ -48,10 +48,8 @@
         <h3 style="padding: 0 25px; margin-bottom: 20px;">Configuración</h3>
         <a href="{{ url_for('configurar_tienda', id_tienda=id_tienda) }}">🎨 Personalizar Colores y Logo</a>
         <a href="{{ url_for('cambiar_clave', id_tienda=id_tienda) }}">🔑 Cambiar Contraseña</a>
-        <div class="menu-item">
-            <label>📂 Activar Subcarpetas</label>
-            <input type="checkbox" {% if tienda_completa.configuracion_subcarpetas %}checked{% endif %} onchange="guardarConfigSub(this)">
-        </div>
+        <!-- Opción fija y directa para crear y gestionar categorías -->
+        <a href="{{ url_for('gestionar_categorias', id_tienda=id_tienda) }}">📁 Crear Categoría</a>
         <hr>
         <a href="/logout" style="color: #ef4444;">🚪 Cerrar Sesión</a>
     </div>
@@ -78,10 +76,6 @@
         function toggleMenu() {
             const menu = document.getElementById("sideMenu");
             menu.style.width = menu.style.width === "280px" ? "0" : "280px";
-        }
-        function guardarConfigSub(checkbox) {
-            // Aquí puedes añadir un fetch hacia una ruta backend para guardar el estado del checkbox
-            alert("Preferencia de subcarpetas guardada: " + checkbox.checked);
         }
     </script>
 </body>
