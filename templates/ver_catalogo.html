@@ -32,7 +32,6 @@
         }
         .navbar h1 { font-size: 19px; margin: 0; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 10px; }
         
-        /* ESTILO PARA EL LOGO CIRCULAR */
         .logo-tienda {
             width: 40px;
             height: 40px;
@@ -45,16 +44,15 @@
         
         .main-container { max-width: 1140px; margin: 0 auto; padding: 25px 15px; }
         
-        /* BARRA DE CATEGORÍAS (ESTILO CARPETAS INTERACTIVAS CORREGIDAS) */
         .categorias-container {
             display: flex;
             gap: 8px;
             margin-bottom: 24px;
             overflow-x: auto;
             padding-bottom: 8px;
-            scrollbar-width: none; /* Oculta barra en Firefox */
+            scrollbar-width: none;
         }
-        .categorias-container::-webkit-scrollbar { display: none; } /* Oculta barra en Chrome/Safari */
+        .categorias-container::-webkit-scrollbar { display: none; }
         
         .btn-categoria {
             background: white;
@@ -67,7 +65,7 @@
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s ease;
-            text-decoration: none; /* Asegura el diseño tipo botón */
+            text-decoration: none;
         }
         .btn-categoria.active {
             background: var(--dark);
@@ -154,7 +152,6 @@
             filter: brightness(1.05);
         }
 
-        /* DISEÑO COMPACTO DEL SELECTOR DE CANTIDAD (+ / -) */
         .quantity-selector {
             display: flex;
             align-items: center;
@@ -211,7 +208,6 @@
         }
         .btn-send-order:hover { transform: scale(1.02); background-color: #1ebd56; }
 
-        /* ESTILOS DEL PASO 3: VENTANA MODAL FLOTANTE FORMULARIO DE ENTREGA */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
@@ -244,6 +240,34 @@
             box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25); transition: background-color 0.2s;
         }
         .btn-submit-order:hover { background-color: #1ebd56; }
+
+        /* ESTILOS DEL BOTÓN FLOTANTE Y CHAT DE IA PARA EL CLIENTE */
+        .chat-ai-btn {
+            position: fixed; bottom: 85px; right: 20px;
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+            color: white; width: 55px; height: 55px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+            cursor: pointer; z-index: 998; border: none; transition: transform 0.3s;
+        }
+        .chat-ai-btn:hover { transform: scale(1.1); }
+        
+        .chat-ai-window {
+            position: fixed; bottom: 150px; right: 20px; width: 320px; max-width: calc(100vw - 40px);
+            height: 400px; background: white; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            display: none; flex-direction: column; overflow: hidden; z-index: 1000; border: 1px solid #e2e8f0;
+        }
+        .chat-ai-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: white;
+            padding: 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 14px;
+        }
+        .chat-ai-messages { flex-grow: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #f8fafc; }
+        .msg { padding: 8px 12px; border-radius: 12px; font-size: 13px; max-width: 80%; line-height: 1.4; }
+        .msg.bot { background: white; color: var(--dark); align-self: flex-start; border: 1px solid #e2e8f0; }
+        .msg.user { background: #4f46e5; color: white; align-self: flex-end; }
+        .chat-ai-input-area { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #e2e8f0; }
+        .chat-ai-input-area input { flex-grow: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 10px; outline: none; font-size: 13px; }
+        .chat-ai-input-area button { background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -317,6 +341,22 @@
     <button id="btn-trigger-modal" class="btn-send-order">Enviar Pedido por WhatsApp</button>
 </div>
 
+<!-- BOTÓN Y VENTANA DE CHAT DE IA PARA EL CLIENTE -->
+<button class="chat-ai-btn" id="btn-toggle-chat" title="Asistente IA">💬</button>
+<div class="chat-ai-window" id="chat-window">
+    <div class="chat-ai-header">
+        <span>🤖 Asistente Virtual IA</span>
+        <button id="btn-close-chat" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">✕</button>
+    </div>
+    <div class="chat-ai-messages" id="chat-messages">
+        <div class="msg bot">¡Hola! Soy el asistente inteligente de esta tienda. ¿Buscas algún producto en especial o necesitas recomendaciones?</div>
+    </div>
+    <div class="chat-ai-input-area">
+        <input type="text" id="chat-input" placeholder="Pregúntale a la IA...">
+        <button id="chat-send">Enviar</button>
+    </div>
+</div>
+
 <div class="modal-overlay" id="order-modal">
     <div class="modal-box">
         <div class="modal-header">
@@ -345,7 +385,6 @@
 </div>
 
 <script>
-    // Formateador de precios de la base de datos
     document.querySelectorAll('.card-precio').forEach(elemento => {
         let numero = parseFloat(elemento.getAttribute('data-valor'));
         if (!isNaN(numero)) {
@@ -357,7 +396,6 @@
     const STORAGE_KEY = "carrito_granero_tienda_{{ id_tienda }}";
     let carrito = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-    // MANEJADOR GLOBAL DE CLICS DENTRO DEL CONTENEDOR DE ACCIONES
     document.getElementById('contenedor-productos').addEventListener('click', function(event) {
         const contenedor = event.target.closest('.product-action-container');
         if (!contenedor) return;
@@ -439,7 +477,42 @@
         }
     }
 
-    // CONTROLADORES DE LA VENTANA EMERGENTE (MODAL)
+    // SCRIPT DEL CHAT DE IA FLOTANTE
+    const btnToggleChat = document.getElementById('btn-toggle-chat');
+    const chatWindow = document.getElementById('chat-window');
+    const btnCloseChat = document.getElementById('btn-close-chat');
+    const chatSend = document.getElementById('chat-send');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    btnToggleChat.addEventListener('click', () => {
+        chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+    });
+    btnCloseChat.addEventListener('click', () => {
+        chatWindow.style.display = 'none';
+    });
+
+    chatSend.addEventListener('click', enviarMensajeIA);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') enviarMensajeIA();
+    });
+
+    function enviarMensajeIA() {
+        const texto = chatInput.value.trim();
+        if (!texto) return;
+
+        // Mostrar mensaje del usuario
+        chatMessages.innerHTML += `<div class="msg user">${texto}</div>`;
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Respuesta simulada de la IA (luego la conectamos al app.py)
+        setTimeout(() => {
+            chatMessages.innerHTML += `<div class="msg bot">Entendido. Estoy analizando el catálogo de esta tienda para darte la mejor recomendación sobre "${texto}". ¡Pronto responderé con más precisión!</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 800);
+    }
+
     const modal = document.getElementById('order-modal');
     const btnTriggerModal = document.getElementById('btn-trigger-modal');
     const btnCloseModal = document.getElementById('btn-close-modal');
@@ -448,21 +521,12 @@
     const inputAddress = document.getElementById('customer-address');
     const deliveryForm = document.getElementById('delivery-form');
 
-    // Abrir Modal al presionar el botón de la barra flotante
     if(btnTriggerModal) {
-        btnTriggerModal.addEventListener('click', () => {
-            modal.classList.add('open');
-        });
+        btnTriggerModal.addEventListener('click', () => { modal.classList.add('open'); });
     }
-
-    // Cerrar Modal por el botón X
     if(btnCloseModal) {
-        btnCloseModal.addEventListener('click', () => {
-            modal.classList.remove('open');
-        });
+        btnCloseModal.addEventListener('click', () => { modal.classList.remove('open'); });
     }
-
-    // Ocultar/Mostrar input de dirección dinámicamente si es retiro en tienda
     if(selectMethod) {
         selectMethod.addEventListener('change', (e) => {
             if(e.target.value === 'Retiro en Tienda') {
@@ -475,16 +539,13 @@
         });
     }
 
-    // ENVIAR FORMULARIO: Construye el texto final formateado y abre la API de WhatsApp
     if(deliveryForm) {
         deliveryForm.addEventListener('submit', (e) => {
-            e.preventDefault(); // Detiene recarga brusca del navegador
-
+            e.preventDefault();
             const nombreCliente = document.getElementById('customer-name').value.trim();
             const metodoEnvio = selectMethod.value;
             const direccionCliente = (metodoEnvio === 'Domicilio') ? inputAddress.value.trim() : 'N/A (Retira en local)';
 
-            // Empezamos estructurando la metadata del mensaje de cara al tendero
             let textoPedido = `🏪 *NUEVO PEDIDO - {{ nombre_tienda }}*\n`;
             textoPedido += `👤 *Cliente:* ${nombreCliente}\n`;
             textoPedido += `🛵 *Método:* ${metodoEnvio}\n`;
@@ -505,11 +566,7 @@
             textoPedido += `💰 *Total a Pagar: $${totalFormateado} COP*`;
 
             let urlTexto = encodeURIComponent(textoPedido);
-            
-            // Cerrar ventana antes del disparo de redirección por usabilidad
             modal.classList.remove('open');
-
-            // Abrir API de WhatsApp usando el teléfono de Jinja
             window.open(`https://wa.me/{{ telefono }}?text=${urlTexto}`, '_blank');
         });
     }

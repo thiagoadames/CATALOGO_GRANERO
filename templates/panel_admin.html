@@ -22,14 +22,55 @@
             background-color: #ffffff; overflow-x: hidden; transition: 0.5s; padding-top: 60px;
             box-shadow: -5px 0 15px rgba(0,0,0,0.1);
         }
-        .side-menu a, .side-menu .menu-item { padding: 15px 25px; text-decoration: none; font-size: 16px; color: #1e293b; display: block; transition: 0.3s; cursor: pointer; }
-        .side-menu a:hover { background-color: #f1f5f9; }
+        .side-menu a, .side-menu .menu-item { padding: 15px 25px; text-decoration: none; font-size: 15px; color: #1e293b; display: block; transition: 0.3s; cursor: pointer; font-weight: 600; }
+        .side-menu a:hover, .side-menu .menu-item:hover { background-color: #f1f5f9; color: #3b82f6; }
         .close-btn { position: absolute; top: 20px; right: 25px; font-size: 30px; cursor: pointer; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        .btn-add { background: #10b981; color: white; padding: 12px 20px; border-radius: 14px; text-decoration: none; display: inline-block; }
-        .product-card { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; border: 1px solid #e2e8f0; }
-        .product-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+        .btn-add { background: #10b981; color: white; padding: 12px 20px; border-radius: 14px; text-decoration: none; display: inline-block; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        .product-card { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; border: 1px solid #e2e8f0; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .product-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: #f1f5f9; }
+        .product-info h3 { font-size: 16px; margin-bottom: 4px; color: #0f172a; }
+        .product-info p { font-size: 15px; font-weight: 700; color: #10b981; margin-bottom: 8px; }
+        .product-info a { font-size: 13px; color: #3b82f6; text-decoration: none; font-weight: 600; }
+
+        /* Estilos para el modal de la Opción 4 (Posts IA Redes Sociales) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 15px;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: white; width: 100%; max-width: 500px;
+            border-radius: 24px; padding: 24px; box-sizing: border-box;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: translateY(20px); transition: transform 0.3s ease; max-height: 90vh; display: flex; flex-direction: column;
+        }
+        .modal-overlay.open .modal-box { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h2 { font-size: 18px; font-weight: 800; color: #0f172a; }
+        .btn-close-modal { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; font-weight: bold; cursor: pointer; color: #64748b; }
+        
+        .post-textarea {
+            width: 100%; height: 180px; padding: 14px; border-radius: 14px; border: 1px solid #cbd5e1;
+            font-size: 14px; outline: none; resize: none; background: #f8fafc; color: #334155; font-family: inherit; margin-bottom: 15px; line-height: 1.5;
+        }
+        .btn-copy-post {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: white; border: none; width: 100%; padding: 14px;
+            border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); transition: opacity 0.2s;
+        }
+        .btn-copy-post:hover { opacity: 0.9; }
+
+        /* Notificación flotante de copiado */
+        .toast-copy {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #0f172a; color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 600;
+            transition: transform 0.3s ease; z-index: 3000; box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+        }
+        .toast-copy.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
@@ -37,7 +78,7 @@
     <div class="header-admin">
         <div>
             <h1>⚙️ Panel</h1>
-            <p>{{ nombre_tienda }}</p>
+            <p style="font-size: 14px; opacity: 0.9; margin-top: 2px;">{{ nombre_tienda }}</p>
         </div>
         <div class="hamburger" onclick="toggleMenu()">☰</div>
     </div>
@@ -45,37 +86,111 @@
     <!-- Menú Lateral -->
     <div id="sideMenu" class="side-menu">
         <span class="close-btn" onclick="toggleMenu()">&times;</span>
-        <h3 style="padding: 0 25px; margin-bottom: 20px;">Configuración</h3>
+        <h3 style="padding: 0 25px; margin-bottom: 10px; color: #0f172a; font-size: 18px;">Configuración</h3>
+        
+        <a href="{{ url_for('ver_catalogo', id_tienda=id_tienda) }}?admin=true" target="_blank">👁️ Ver Catálogo Público</a>
+        <div class="menu-item" onclick="compartirEnlace()">🔗 Copiar Enlace del Catálogo</div>
+        <div class="menu-item" onclick="abrirModalAI()">✨ Crear Post para Redes (IA)</div>
+        
+        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 10px 0;">
+        
         <a href="{{ url_for('configurar_tienda', id_tienda=id_tienda) }}">🎨 Personalizar Colores y Logo</a>
         <a href="{{ url_for('cambiar_clave', id_tienda=id_tienda) }}">🔑 Cambiar Contraseña</a>
-        <!-- Opción fija y directa para crear y gestionar categorías -->
         <a href="{{ url_for('gestionar_categorias', id_tienda=id_tienda) }}">📁 Crear Categoría</a>
-        <hr>
+        
+        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 10px 0;">
         <a href="/logout" style="color: #ef4444;">🚪 Cerrar Sesión</a>
     </div>
 
     <div class="container">
-        <div style="display:flex; justify-content:space-between; margin: 20px 0;">
-            <h2>Mis Productos</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin: 20px 0;">
+            <h2 style="font-size: 20px; color: #0f172a;">Mis Productos</h2>
             <a href="/tienda/{{ id_tienda }}/agregar" class="btn-add">➕ Nuevo</a>
         </div>
 
         {% for producto in lista_productos %}
         <div class="product-card">
             <img src="{{ producto.url_imagen }}" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=200';">
-            <div class="product-info">
+            <div class="product-info" style="flex-grow: 1;">
                 <h3>{{ producto.nombre_producto }}</h3>
                 <p>${{ "{:,.0f}".format(producto.precio|float) }}</p>
-                <a href="{{ url_for('editar_producto', id_tienda=id_tienda, id_producto=producto.id_producto) }}">✏️ Editar</a>
+                <a href="{{ url_for('editar_producto', id_tienda=id_tienda, id_producto=producto.id_producto) }}">✏️ Editar producto</a>
             </div>
         </div>
         {% endfor %}
     </div>
 
+    <!-- MODAL DE LA OPCIÓN 4: POST DE IA PARA REDES SOCIALES -->
+    <div class="modal-overlay" id="modal-ai-post">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>✨ Post para Redes Sociales</h2>
+                <button class="btn-close-modal" onclick="cerrarModalAI()">✕</button>
+            </div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">La inteligencia artificial generó esta publicación promocional atractiva basada en los productos de tu tienda. ¡Cópiala y pégala en tu estado de WhatsApp o Facebook!</p>
+            
+            <textarea class="post-textarea" id="ai-post-content" readonly>¡Hola a todos! 👋 Les recuerdo que ya tenemos disponible nuestro catálogo online actualizado en {{ nombre_tienda }}. 🛒✨ 
+
+Tenemos los mejores productos al alcance de un clic y listos para llevar a domicilio o apartar. 🛵💨
+
+Haz clic aquí para ver todo y hacer tu pedido fácil y rápido:
+👉 window.location.origin + "/tienda/{{ id_tienda }}/catalogo"
+
+¡Los esperamos! 🛍️</textarea>
+
+            <button class="btn-copy-post" onclick="copiarTextoPost()">📋 Copiar Texto del Post</button>
+        </div>
+    </div>
+
+    <!-- Notificación Toast -->
+    <div class="toast-copy" id="toastNotification">¡Enlace copiado al portapapeles!</div>
+
     <script>
         function toggleMenu() {
             const menu = document.getElementById("sideMenu");
             menu.style.width = menu.style.width === "280px" ? "0" : "280px";
+        }
+
+        function compartirEnlace() {
+            const urlCatalogo = window.location.origin + "/tienda/{{ id_tienda }}/catalogo";
+            navigator.clipboard.writeText(urlCatalogo).then(() => {
+                mostrarToast("¡Enlace del catálogo copiado con éxito!");
+                toggleMenu();
+            }).catch(err => {
+                alert("No se pudo copiar automáticamente, enlace: " + urlCatalogo);
+            });
+        }
+
+        function abrirModalAI() {
+            toggleMenu();
+            // Actualizar la URL real dentro del textarea de la IA
+            const urlCatalogo = window.location.origin + "/tienda/{{ id_tienda }}/catalogo";
+            const textoBase = `¡Hola a todos! 👋 Les recuerdo que ya tenemos disponible nuestro catálogo online en {{ nombre_tienda }}. 🛒✨\n\nTenemos los mejores productos listos para llevar a domicilio o apartar. 🛵💨\n\nHaz clic aquí para ver el catálogo y hacer tu pedido fácil y rápido:\n👉 ${urlCatalogo}\n\n¡Los esperamos! 🛍️`;
+            document.getElementById('ai-post-content').value = textoBase;
+            
+            document.getElementById('modal-ai-post').classList.add('open');
+        }
+
+        function cerrarModalAI() {
+            document.getElementById('modal-ai-post').classList.remove('open');
+        }
+
+        function copiarTextoPost() {
+            const textarea = document.getElementById('ai-post-content');
+            textarea.select();
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                cerrarModalAI();
+                mostrarToast("¡Post de redes sociales copiado al portapapeles!");
+            });
+        }
+
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById("toastNotification");
+            toast.innerText = mensaje;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
         }
     </script>
 </body>
