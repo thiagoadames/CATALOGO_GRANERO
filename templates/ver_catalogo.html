@@ -241,7 +241,6 @@
         }
         .btn-submit-order:hover { background-color: #1ebd56; }
 
-        /* ESTILOS DEL BOTÓN FLOTANTE Y CHAT DE IA PARA EL CLIENTE */
         .chat-ai-btn {
             position: fixed; bottom: 85px; right: 20px;
             background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
@@ -296,11 +295,12 @@
     
     <div class="categorias-container">
         <a href="/tienda/{{ id_tienda }}/catalogo{% if es_admin %}?admin=true{% endif %}" class="btn-categoria {% if not categoria_actual %}active{% endif %}">📁 Todos</a>
-        <a href="/tienda/{{ id_tienda }}/catalogo?cat=abarrotes{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == 'abarrotes' %}active{% endif %}">🌾 Abarrotes</a>
-        <a href="/tienda/{{ id_tienda }}/catalogo?cat=lacteos{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == 'lacteos' %}active{% endif %}">🥛 Lácteos</a>
-        <a href="/tienda/{{ id_tienda }}/catalogo?cat=aseo{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == 'aseo' %}active{% endif %}">🧼 Aseo</a>
-        <a href="/tienda/{{ id_tienda }}/catalogo?cat=dulceria{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == 'dulceria' %}active{% endif %}">🍬 Dulcería</a>
-        <a href="/tienda/{{ id_tienda }}/catalogo?cat=bebidas{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == 'bebidas' %}active{% endif %}">🍾 Bebidas</a>
+        
+        {% for cat in lista_categorias %}
+            <a href="/tienda/{{ id_tienda }}/catalogo?cat={{ cat|urlencode }}{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == cat %}active{% endif %}">
+                📂 {{ cat|capitalize }}
+            </a>
+        {% endfor %}
     </div>
 
     <div class="grid-productos" id="contenedor-productos">
@@ -341,7 +341,6 @@
     <button id="btn-trigger-modal" class="btn-send-order">Enviar Pedido por WhatsApp</button>
 </div>
 
-<!-- BOTÓN Y VENTANA DE CHAT DE IA PARA EL CLIENTE -->
 <button class="chat-ai-btn" id="btn-toggle-chat" title="Asistente IA">💬</button>
 <div class="chat-ai-window" id="chat-window">
     <div class="chat-ai-header">
@@ -477,7 +476,6 @@
         }
     }
 
-    // SCRIPT DEL CHAT DE IA FLOTANTE
     const btnToggleChat = document.getElementById('btn-toggle-chat');
     const chatWindow = document.getElementById('chat-window');
     const btnCloseChat = document.getElementById('btn-close-chat');
@@ -501,12 +499,10 @@
         const texto = chatInput.value.trim();
         if (!texto) return;
 
-        // Mostrar mensaje del usuario
         chatMessages.innerHTML += `<div class="msg user">${texto}</div>`;
         chatInput.value = '';
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Respuesta simulada de la IA (luego la conectamos al app.py)
         setTimeout(() => {
             chatMessages.innerHTML += `<div class="msg bot">Entendido. Estoy analizando el catálogo de esta tienda para darte la mejor recomendación sobre "${texto}". ¡Pronto responderé con más precisión!</div>`;
             chatMessages.scrollTop = chatMessages.scrollHeight;
