@@ -46,7 +46,7 @@
         
         .categorias-container {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 24px;
             overflow-x: auto;
             padding-bottom: 8px;
@@ -58,19 +58,25 @@
             background: white;
             color: var(--slate);
             border: 1px solid #e2e8f0;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 25px;
+            font-size: 13.5px;
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s ease;
             text-decoration: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .btn-categoria:hover {
+            border-color: var(--primary);
+            color: var(--primary);
         }
         .btn-categoria.active {
             background: var(--dark);
             color: white;
             border-color: var(--dark);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
         }
 
         .grid-productos {
@@ -293,12 +299,13 @@
 
 <div class="main-container">
     
+    <!-- MENÚ DE CATEGORÍAS LIMPIO Y DINÁMICO -->
     <div class="categorias-container">
-        <a href="/tienda/{{ id_tienda }}/catalogo{% if es_admin %}?admin=true{% endif %}" class="btn-categoria {% if not categoria_actual %}active{% endif %}">📁 Todos</a>
+        <a href="/tienda/{{ id_tienda }}/catalogo{% if es_admin %}?admin=true{% endif %}" class="btn-categoria {% if not categoria_actual %}active{% endif %}">Todos</a>
         
         {% for cat in lista_categorias %}
             <a href="/tienda/{{ id_tienda }}/catalogo?cat={{ cat|urlencode }}{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == cat %}active{% endif %}">
-                📂 {{ cat|capitalize }}
+                {{ cat|capitalize }}
             </a>
         {% endfor %}
     </div>
@@ -370,7 +377,7 @@
             <div class="form-group">
                 <label for="delivery-method">Método de Entrega</label>
                 <select id="delivery-method">
-                    <option value="Domicilio">🛵 Servicio a Domicilio</option>
+                    <option value="Servicio a Domicilio">🛵 Servicio a Domicilio</option>
                     <option value="Retiro en Tienda">🏪 Retirar en la Tienda</option>
                 </select>
             </div>
@@ -540,12 +547,12 @@
             e.preventDefault();
             const nombreCliente = document.getElementById('customer-name').value.trim();
             const metodoEnvio = selectMethod.value;
-            const direccionCliente = (metodoEnvio === 'Domicilio') ? inputAddress.value.trim() : 'N/A (Retira en local)';
+            const direccionCliente = (metodoEnvio === 'Servicio a Domicilio') ? inputAddress.value.trim() : 'N/A (Retira en local)';
 
             let textoPedido = `🏪 *NUEVO PEDIDO - {{ nombre_tienda }}*\n`;
             textoPedido += `👤 *Cliente:* ${nombreCliente}\n`;
             textoPedido += `🛵 *Método:* ${metodoEnvio}\n`;
-            if(metodoEnvio === 'Domicilio') {
+            if(metodoEnvio === 'Servicio a Domicilio') {
                 textoPedido += `📍 *Dirección:* ${direccionCliente}\n`;
             }
             textoPedido += `\n-----------------------------------------\n`;
