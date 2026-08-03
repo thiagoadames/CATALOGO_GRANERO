@@ -207,7 +207,7 @@ def registrar_tienda():
             
             sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp, url_logo, email_recuperacion, color_primario, tipo_negocio, configuracion_subcarpetas) 
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db, email_recuperacion, '#0056b3', 'General', 0)
+            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db, email_recuperacion, '#0056b3', 'General', 1)
             
             cursor.execute(sql_tienda, valores_tienda)
             nuevo_id_tienda = cursor.lastrowid
@@ -285,7 +285,7 @@ def panel_administrador(id_tienda):
         return f"<h1>Error al cargar el panel de administración: {err}</h1>"
 
 # ==========================================
-# GESTIÓN DE CATEGORÍAS (LISTAR Y ELIMINAR)
+# GESTIÓN DE CATEGORÍAS (CREAR Y LISTAR)
 # ==========================================
 @app.route('/tienda/<int:id_tienda>/categorias', methods=['GET', 'POST'])
 def gestionar_categorias(id_tienda):
@@ -333,7 +333,7 @@ def eliminar_categoria(id_tienda, id_categoria):
         return f"<h1>Error al eliminar categoría: {err}</h1>"
 
 # ==========================================
-# AGREGAR PRODUCTO
+# AGREGAR PRODUCTO (CON CATEGORÍAS OBLIGATORIAS POR DEFECTO)
 # ==========================================
 @app.route('/tienda/<int:id_tienda>/agregar', methods=['GET', 'POST'])
 def agregar_producto(id_tienda):
@@ -344,10 +344,7 @@ def agregar_producto(id_tienda):
         conexion = obtener_conexion()
         cursor = conexion.cursor(dictionary=True)
 
-        cursor.execute("SELECT configuracion_subcarpetas FROM tiendas WHERE id_tienda = %s", (id_tienda,))
-        tienda_config = cursor.fetchone()
-        usa_subcarpetas = bool(tienda_config['configuracion_subcarpetas']) if tienda_config else False
-
+        # Obtenemos siempre las categorías creadas por el dueño de la tienda
         cursor.execute("SELECT id_categoria, nombre_categoria FROM categorias WHERE id_tienda = %s", (id_tienda,))
         categorias_tienda = cursor.fetchall()
 
@@ -355,11 +352,9 @@ def agregar_producto(id_tienda):
             nombre = request.form['nombre']
             precio = request.form['precio']
             
-            if usa_subcarpetas:
-                categoria_form = request.form.get('categoria')
-                categoria = int(categoria_form) if categoria_form else clasificar_producto(nombre, categorias_tienda)
-            else:
-                categoria = None
+            # Tomamos la categoría seleccionada en el formulario o la clasificamos automáticamente
+            categoria_form = request.form.get('categoria')
+            categoria = int(categoria_form) if categoria_form else clasificar_producto(nombre, categorias_tienda)
 
             descripcion = request.form.get('descripcion') or generar_descripcion_ia(nombre)
             
@@ -396,7 +391,7 @@ def agregar_producto(id_tienda):
         return render_template('agregar_producto.html', 
                                id_tienda=id_tienda, 
                                lista_categorias=categorias_tienda, 
-                               usa_subcarpetas=usa_subcarpetas)
+                               usa_subcarpetas=True)
 
     except mysql.connector.Error as err:
         return f"<h1>Error al guardar en la base de datos: {err}</h1>"
@@ -577,7 +572,6 @@ def configurar_tienda(id_tienda):
         if request.method == 'POST':
             color_ingresado = request.form['color_primario'].strip()
             tipo_negocio = request.form['tipo_negocio'].strip()
-            subcarpetas = 1 if 'subcarpetas' in request.form else 0
             slug_ingresado = request.form['slug'].strip().lower()
             
             if not re.match(r'^#[A-Fa-f0-9]{6}$', color_ingresado):
@@ -600,10 +594,10 @@ def configurar_tienda(id_tienda):
             
             sql_update = """
                 UPDATE tiendas 
-                SET color_primario = %s, tipo_negocio = %s, configuracion_subcarpetas = %s, slug = %s 
+                SET color_primario = %s, tipo_negocio = %s, slug = %s 
                 WHERE id_tienda = %s
             """
-            cursor.execute(sql_update, (color_ingresado, tipo_negocio, subcarpetas, slug_ingresado, id_tienda))
+            cursor.execute(sql_update, (color_ingresado, tipo_negocio, slug_ingresado, id_tienda))
             conexion.commit()
             
             cursor.close()
