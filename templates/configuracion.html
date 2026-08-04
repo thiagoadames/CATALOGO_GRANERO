@@ -79,7 +79,7 @@
                     <input type="text" name="tipo_negocio" value="{{ tienda.tipo_negocio if tienda.tipo_negocio else 'General' }}">
                 </div>
             </div>
-
+            
             <div class="form-group">
                 <label>Dirección</label>
                 <div class="input-wrapper">
@@ -93,6 +93,14 @@
                 <div class="input-wrapper">
                     <span>📞</span>
                     <input type="text" name="telefono" value="{{ tienda.telefono if tienda.telefono else '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Ciudad</label>
+                <div class="input-wrapper">
+                    <span>🏙️</span>
+                    <input type="text" name="ciudad" value="{{ tienda.ciudad if tienda.ciudad else '' }}">
                 </div>
             </div>
 
