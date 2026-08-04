@@ -456,7 +456,7 @@ def editar_producto(id_tienda, id_producto):
         return f"<h1>Error en el proceso de edición: {err}</h1>"
 
 # =========================================================================
-# VISTA PÚBLICA Y SLUG (CORREGIDO PARA FILTRAR CATEGORÍAS CORRECTAMENTE)
+# VISTA PÚBLICA Y SLUG
 # =========================================================================
 @app.route('/tienda/<int:id_tienda>/catalogo')
 def ver_catalogo(id_tienda):
