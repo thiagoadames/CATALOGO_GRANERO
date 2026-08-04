@@ -205,9 +205,9 @@ def registrar_tienda():
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp, url_logo, email_recuperacion, color_primario, tipo_negocio, configuracion_subcarpetas) 
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db, email_recuperacion, '#0056b3', 'General', 1)
+            sql_tienda = """INSERT INTO tiendas (nombre_tienda, slug, telefono, direccion, ciudad, telefono_whatsapp, url_logo, email_recuperacion, color_primario, tipo_negocio) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            valores_tienda = (nombre_tienda, slug, whatsapp_final, direccion, ciudad, whatsapp_final, url_logo_db, email_recuperacion, '#0056b3', 'General')
             
             cursor.execute(sql_tienda, valores_tienda)
             nuevo_id_tienda = cursor.lastrowid
@@ -467,7 +467,7 @@ def ver_catalogo(id_tienda):
         conexion = obtener_conexion()
         cursor = conexion.cursor(dictionary=True)
         
-        cursor.execute("SELECT nombre_tienda, telefono, ciudad, url_logo, color_primario, tipo_negocio, configuracion_subcarpetas FROM tiendas WHERE id_tienda = %s", (id_tienda,))
+        cursor.execute("SELECT nombre_tienda, telefono, ciudad, url_logo, color_primario, tipo_negocio FROM tiendas WHERE id_tienda = %s", (id_tienda,))
         datos_tienda = cursor.fetchone()
         
         if datos_tienda:
@@ -556,7 +556,7 @@ def ver_catalogo_por_slug(slug_tienda):
         return f"<h1>Error al procesar el enlace de catálogo: {e}</h1>", 500
 
 # =========================================================================
-# CONFIGURACIÓN DE LA TIENDA
+# CONFIGURACIÓN DE LA TIENDA (CORREGIDA Y ACTUALIZADA)
 # =========================================================================
 @app.route('/tienda/<int:id_tienda>/configuracion', methods=['GET', 'POST'])
 def configurar_tienda(id_tienda):
@@ -568,6 +568,12 @@ def configurar_tienda(id_tienda):
         cursor = conexion.cursor(dictionary=True)
         
         if request.method == 'POST':
+            # Capturar todos los campos editables del formulario de configuración
+            nombre_tienda = request.form['nombre_tienda'].strip()
+            raw_telefono = request.form['telefono'].strip()
+            direccion = request.form['direccion'].strip()
+            ciudad = request.form['ciudad'].strip()
+            email_recuperacion = request.form['email_recuperacion'].strip()
             color_ingresado = request.form['color_primario'].strip()
             tipo_negocio = request.form['tipo_negocio'].strip()
             slug_ingresado = request.form['slug'].strip().lower()
@@ -590,14 +596,39 @@ def configurar_tienda(id_tienda):
                 cursor.close(); conexion.close()
                 return "<h1>Error: Este nombre de enlace ya está siendo utilizado por otra tienda.</h1><a href='javascript:history.back()'>Volver</a>", 400
             
-            sql_update = """
-                UPDATE tiendas 
-                SET color_primario = %s, tipo_negocio = %s, slug = %s 
-                WHERE id_tienda = %s
-            """
-            cursor.execute(sql_update, (color_ingresado, tipo_negocio, slug_ingresado, id_tienda))
+            # Formatear el teléfono de WhatsApp
+            if not raw_telefono.startswith('57') and len(raw_telefono) == 10:
+                whatsapp_final = f"57{raw_telefono}"
+            else:
+                whatsapp_final = raw_telefono
+
+            # Gestionar la actualización de la imagen del logo si el usuario subió una nueva
+            archivo_logo = request.files.get('logo')
+            if archivo_logo and archivo_logo.filename != '':
+                nombre_archivo_seguro = secure_filename(archivo_logo.filename)
+                ruta_guardado = os.path.join(app.config['UPLOAD_FOLDER'], nombre_archivo_seguro)
+                archivo_logo.save(ruta_guardado)
+                url_logo_db = f"/static/imagenes/{nombre_archivo_seguro}"
+                
+                sql_update = """
+                    UPDATE tiendas 
+                    SET nombre_tienda = %s, telefono = %s, direccion = %s, ciudad = %s, 
+                        email_recuperacion = %s, color_primario = %s, tipo_negocio = %s, 
+                        slug = %s, telefono_whatsapp = %s, url_logo = %s
+                    WHERE id_tienda = %s
+                """
+                cursor.execute(sql_update, (nombre_tienda, whatsapp_final, direccion, ciudad, email_recuperacion, color_ingresado, tipo_negocio, slug_ingresado, whatsapp_final, url_logo_db, id_tienda))
+            else:
+                sql_update = """
+                    UPDATE tiendas 
+                    SET nombre_tienda = %s, telefono = %s, direccion = %s, ciudad = %s, 
+                        email_recuperacion = %s, color_primario = %s, tipo_negocio = %s, 
+                        slug = %s, telefono_whatsapp = %s
+                    WHERE id_tienda = %s
+                """
+                cursor.execute(sql_update, (nombre_tienda, whatsapp_final, direccion, ciudad, email_recuperacion, color_ingresado, tipo_negocio, slug_ingresado, whatsapp_final, id_tienda))
+
             conexion.commit()
-            
             cursor.close()
             conexion.close()
             return redirect(url_for('panel_administrador', id_tienda=id_tienda))
