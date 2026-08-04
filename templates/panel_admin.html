@@ -34,7 +34,7 @@
         .product-info p { font-size: 15px; font-weight: 700; color: #10b981; margin-bottom: 8px; }
         .product-info a { font-size: 13px; color: #3b82f6; text-decoration: none; font-weight: 600; }
 
-        /* Estilos para el modal de la Opción 4 (Posts IA Redes Sociales) */
+        /* Estilos generales para modales */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
@@ -47,6 +47,7 @@
             border-radius: 24px; padding: 24px; box-sizing: border-box;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             transform: translateY(20px); transition: transform 0.3s ease; max-height: 90vh; display: flex; flex-direction: column;
+            text-align: center;
         }
         .modal-overlay.open .modal-box { transform: translateY(0); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -55,7 +56,7 @@
         
         .post-textarea {
             width: 100%; height: 180px; padding: 14px; border-radius: 14px; border: 1px solid #cbd5e1;
-            font-size: 14px; outline: none; resize: none; background: #f8fafc; color: #334155; font-family: inherit; margin-bottom: 15px; line-height: 1.5;
+            font-size: 14px; outline: none; resize: none; background: #f8fafc; color: #334155; font-family: inherit; margin-bottom: 15px; line-height: 1.5; text-align: left;
         }
         .btn-copy-post {
             background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: white; border: none; width: 100%; padding: 14px;
@@ -63,6 +64,18 @@
             box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); transition: opacity 0.2s;
         }
         .btn-copy-post:hover { opacity: 0.9; }
+
+        /* Estilos específicos para el modal QR */
+        .qr-container {
+            background: #f8fafc; padding: 20px; border-radius: 20px; display: inline-block; margin: 15px 0; border: 1px solid #e2e8f0;
+        }
+        .qr-container img { width: 200px; height: 200px; display: block; border-radius: 8px; }
+        .btn-download-qr {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; width: 100%; padding: 14px;
+            border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; display: block; text-align: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); transition: opacity 0.2s; margin-top: 10px;
+        }
+        .btn-download-qr:hover { opacity: 0.9; }
 
         /* Notificación flotante de copiado */
         .toast-copy {
@@ -90,6 +103,7 @@
         
         <a href="{{ url_for('ver_catalogo', id_tienda=id_tienda) }}?admin=true" target="_blank">👁️ Ver Catálogo Público</a>
         <div class="menu-item" onclick="compartirEnlace()">🔗 Copiar Enlace del Catálogo</div>
+        <div class="menu-item" onclick="abrirModalQR()">📲 Generar tu QR</div>
         <div class="menu-item" onclick="abrirModalAI()">✨ Crear Post para Redes (IA)</div>
         
         <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 10px 0;">
@@ -120,6 +134,23 @@
         {% endfor %}
     </div>
 
+    <!-- MODAL PARA GENERAR EL CÓDIGO QR -->
+    <div class="modal-overlay" id="modal-qr">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>📲 Código QR de tu Tienda</h2>
+                <button class="btn-close-modal" onclick="cerrarModalQR()">✕</button>
+            </div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 5px;">Tus clientes pueden escanear este código con la cámara de su celular para abrir directamente tu catálogo online.</p>
+            
+            <div class="qr-container">
+                <img id="qr-image" src="" alt="Código QR de la tienda">
+            </div>
+
+            <a id="btn-download-qr" class="btn-download-qr" href="#" download="catalogo-qr.png" target="_blank">📥 Descargar Imagen QR</a>
+        </div>
+    </div>
+
     <!-- MODAL DE LA OPCIÓN 4: POST DE IA PARA REDES SOCIALES -->
     <div class="modal-overlay" id="modal-ai-post">
         <div class="modal-box">
@@ -127,7 +158,7 @@
                 <h2>✨ Post para Redes Sociales</h2>
                 <button class="btn-close-modal" onclick="cerrarModalAI()">✕</button>
             </div>
-            <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">La inteligencia artificial generó esta publicación promocional atractiva basada en los productos de tu tienda. ¡Cópiala y pégala en tu estado de WhatsApp o Facebook!</p>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 12px; text-align: left;">La inteligencia artificial generó esta publicación promocional atractiva basada en los productos de tu tienda. ¡Cópiala y pégala en tu estado de WhatsApp o Facebook!</p>
             
             <textarea class="post-textarea" id="ai-post-content" readonly>¡Hola a todos! 👋 Les recuerdo que ya tenemos disponible nuestro catálogo online actualizado en {{ nombre_tienda }}. 🛒✨ 
 
@@ -161,9 +192,22 @@ Haz clic aquí para ver todo y hacer tu pedido fácil y rápido:
             });
         }
 
+        function abrirModalQR() {
+            toggleMenu();
+            const urlCatalogo = window.location.origin + "/tienda/{{ id_tienda }}/catalogo";
+            const apiQRUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(urlCatalogo)}`;
+            
+            document.getElementById('qr-image').src = apiQRUrl;
+            document.getElementById('btn-download-qr').href = apiQRUrl;
+            document.getElementById('modal-qr').classList.add('open');
+        }
+
+        function cerrarModalQR() {
+            document.getElementById('modal-qr').classList.remove('open');
+        }
+
         function abrirModalAI() {
             toggleMenu();
-            // Actualizar la URL real dentro del textarea de la IA
             const urlCatalogo = window.location.origin + "/tienda/{{ id_tienda }}/catalogo";
             const textoBase = `¡Hola a todos! 👋 Les recuerdo que ya tenemos disponible nuestro catálogo online en {{ nombre_tienda }}. 🛒✨\n\nTenemos los mejores productos listos para llevar a domicilio o apartar. 🛵💨\n\nHaz clic aquí para ver el catálogo y hacer tu pedido fácil y rápido:\n👉 ${urlCatalogo}\n\n¡Los esperamos! 🛍️`;
             document.getElementById('ai-post-content').value = textoBase;
