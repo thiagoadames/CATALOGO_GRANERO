@@ -344,7 +344,6 @@ def agregar_producto(id_tienda):
         conexion = obtener_conexion()
         cursor = conexion.cursor(dictionary=True)
 
-        # Obtenemos siempre las categorías creadas por el dueño de la tienda
         cursor.execute("SELECT id_categoria, nombre_categoria FROM categorias WHERE id_tienda = %s", (id_tienda,))
         categorias_tienda = cursor.fetchall()
 
@@ -352,7 +351,6 @@ def agregar_producto(id_tienda):
             nombre = request.form['nombre']
             precio = request.form['precio']
             
-            # Tomamos la categoría seleccionada en el formulario o la clasificamos automáticamente
             categoria_form = request.form.get('categoria')
             categoria = int(categoria_form) if categoria_form else clasificar_producto(nombre, categorias_tienda)
 
@@ -458,7 +456,7 @@ def editar_producto(id_tienda, id_producto):
         return f"<h1>Error en el proceso de edición: {err}</h1>"
 
 # =========================================================================
-# VISTA PÚBLICA Y SLUG
+# VISTA PÚBLICA Y SLUG (CORREGIDO PARA FILTRAR CATEGORÍAS CORRECTAMENTE)
 # =========================================================================
 @app.route('/tienda/<int:id_tienda>/catalogo')
 def ver_catalogo(id_tienda):
@@ -507,9 +505,9 @@ def ver_catalogo(id_tienda):
                        c.nombre_categoria
                 FROM productos p
                 LEFT JOIN categorias c ON p.categoria = c.id_categoria
-                WHERE p.id_tienda = %s AND p.categoria = %s
+                WHERE p.id_tienda = %s AND (c.nombre_categoria = %s OR p.categoria = %s)
             """
-            cursor.execute(sql_productos, (id_tienda, categoria_seleccionada))
+            cursor.execute(sql_productos, (id_tienda, categoria_seleccionada, categoria_seleccionada))
         else:
             sql_productos = """
                 SELECT p.id_producto, p.nombre_producto, p.precio, p.categoria, p.descripcion, p.url_imagen,
