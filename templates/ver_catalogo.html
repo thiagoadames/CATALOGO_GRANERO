@@ -67,6 +67,9 @@
             transition: all 0.2s ease;
             text-decoration: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         .btn-categoria:hover {
             border-color: var(--primary);
@@ -77,6 +80,16 @@
             color: white;
             border-color: var(--dark);
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+
+        /* Estilo para los círculos de colores seguro (usando variable CSS) */
+        .dot-categoria {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            background-color: var(--dot-color);
         }
 
         .grid-productos {
@@ -299,13 +312,20 @@
 
 <div class="main-container">
     
-    <!-- MENÚ DE CATEGORÍAS LIMPIO Y DINÁMICO -->
+    <!-- MENÚ DE CATEGORÍAS SEGURO (SIN ERRORES EN EL LINTER) -->
     <div class="categorias-container">
         <a href="/tienda/{{ id_tienda }}/catalogo{% if es_admin %}?admin=true{% endif %}" class="btn-categoria {% if not categoria_actual %}active{% endif %}">Todos</a>
         
         {% for cat in lista_categorias %}
-            <a href="/tienda/{{ id_tienda }}/catalogo?cat={{ cat|urlencode }}{% if es_admin %}&admin=true{% endif %}" class="btn-categoria {% if categoria_actual == cat %}active{% endif %}">
-                {{ cat|capitalize }}
+            {% set colors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f43f5e'] %}
+            {% set color_actual = colors[loop.index0 % colors|length] %}
+            {% set nombre_cat = cat.nombre_categoria if cat is mapping else cat %}
+            
+            <a href="/tienda/{{ id_tienda }}/catalogo?cat={{ nombre_cat | urlencode }}{% if es_admin %}&admin=true{% endif %}" 
+               class="btn-categoria {% if categoria_actual == nombre_cat %}active{% endif %}"
+               style="--dot-color: {{ color_actual }};">
+                <span class="dot-categoria"></span>
+                {{ nombre_cat | capitalize }}
             </a>
         {% endfor %}
     </div>
@@ -490,17 +510,23 @@
     const chatInput = document.getElementById('chat-input');
     const chatMessages = document.getElementById('chat-messages');
 
-    btnToggleChat.addEventListener('click', () => {
-        chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
-    });
-    btnCloseChat.addEventListener('click', () => {
-        chatWindow.style.display = 'none';
-    });
+    if(btnToggleChat) {
+        btnToggleChat.addEventListener('click', () => {
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+        });
+    }
+    if(btnCloseChat) {
+        btnCloseChat.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+        });
+    }
 
-    chatSend.addEventListener('click', enviarMensajeIA);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') enviarMensajeIA();
-    });
+    if(chatSend) chatSend.addEventListener('click', enviarMensajeIA);
+    if(chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') enviarMensajeIA();
+        });
+    }
 
     function enviarMensajeIA() {
         const texto = chatInput.value.trim();
